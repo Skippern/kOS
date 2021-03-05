@@ -1,1 +1,4 @@
 *.ini
+.DS_Store
+*.ksm
+*.code-workspace

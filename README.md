@@ -26,6 +26,12 @@ All scripts will be tested, and adjustments might occure rapidly.
 
 * Rendevouz with object
 
+* Rover autopilot
+
+* Ground vessel autopilot
+
+* Atmospheric autopilot
+
 # Complete
 
 (nothing yet)
@@ -34,8 +40,8 @@ All scripts will be tested, and adjustments might occure rapidly.
 
 Scripts are tested and should work with following conditions:
 
-* KSP 1.11.1
+* KSP 1.11.1 (Windows10)
 
 * kOS Scriptable Autopilot System 1.3.2.0
 
-* MechJeb2 auto staging
+* MechJeb2 auto staging (not sure if needed)

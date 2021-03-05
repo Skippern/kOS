@@ -1,5 +1,10 @@
 CLEARSCREEN.
 
+PRINT "Pitching not set" AT(0,0). 
+PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
+
+
 LOCK THROTTLE TO 1.0.   // 1.0 is the max, 0.0 is idle.
 
 //This is our countdown loop, which cycles from 10 to 0
@@ -31,10 +36,15 @@ DECLARE FUNCTION CalcAzi {
 }.
 
 
-SET INC TO 131. // Desired inclination
+// SET INC TO 131. // Desired inclination
+SET INC TO FLOOR(360*RANDOM()).
 SET APO to 56377040. // Desired Apopasis
 SET PERI to 39049260. // Desired Periapsis
 SET AZI TO CalcAzi(INC). // Launch azimut, will impact the inclination of the orbit
+
+PRINT "Inclination set to " + INC.
+
+SET PITCH TO 90.
 
 SET MYSTEER TO HEADING(AZI,90).
 LOCK STEERING TO MYSTEER. // from now on we'll be able to change steering by just assigning a new value to MYSTEER
@@ -45,61 +55,67 @@ UNTIL SHIP:APOAPSIS > 100000 { //Remember, all altitudes will be in meters, not 
     IF SHIP:VELOCITY:SURFACE:MAG < 100 {
         //This sets our steering 90 degrees up and yawed to the compass
         //heading of 90 degrees (east)
-        SET MYSTEER TO HEADING(AZI,90).
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
     //Once we pass 100m/s, we want to pitch down ten degrees
     } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 100 AND SHIP:VELOCITY:SURFACE:MAG < 500 {
-        SET MYSTEER TO HEADING(AZI,80).
-        PRINT "Pitching to 80 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+        SET PITCH TO 80.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    //Each successive IF statement checks to see if our velocity
-    //is within a 100m/s block and adjusts our heading down another
-    //ten degrees if so
     } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 500 AND SHIP:VELOCITY:SURFACE:MAG < 700 {
-        SET MYSTEER TO HEADING(AZI,70).
-        PRINT "Pitching to 70 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+        SET PITCH TO 70.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 700 AND SHIP:VELOCITY:SURFACE:MAG < 800 {
-        SET MYSTEER TO HEADING(AZI,60).
-        PRINT "Pitching to 60 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 700 AND SHIP:VELOCITY:SURFACE:MAG < 900 {
+        SET PITCH TO 60.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 800 AND SHIP:VELOCITY:SURFACE:MAG < 900 {
-        SET MYSTEER TO HEADING(AZI,50).
-        PRINT "Pitching to 50 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 900 AND SHIP:VELOCITY:SURFACE:MAG < 1100 {
+        SET PITCH TO 50.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 900 AND SHIP:VELOCITY:SURFACE:MAG < 1000 {
-        SET MYSTEER TO HEADING(AZI,40).
-        PRINT "Pitching to 40 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1100 AND SHIP:VELOCITY:SURFACE:MAG < 1300 {
+        SET PITCH TO 40.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1000 AND SHIP:VELOCITY:SURFACE:MAG < 1100 {
-        SET MYSTEER TO HEADING(AZI,30).
-        PRINT "Pitching to 30 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1300 AND SHIP:VELOCITY:SURFACE:MAG < 1500 {
+        SET PITCH TO 30.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1100 AND SHIP:VELOCITY:SURFACE:MAG < 1200 {
-        SET MYSTEER TO HEADING(AZI,20).
-        PRINT "Pitching to 20 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1500 AND SHIP:VELOCITY:SURFACE:MAG < 1700 {
+        SET PITCH TO 20.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
-    //Beyond 800m/s, we can keep facing towards 10 degrees above the horizon and wait
-    //for the main loop to recognize that our apoapsis is above 100km
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1200 {
-        SET MYSTEER TO HEADING(AZI,10).
-        PRINT "Pitching to 10 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,16).
-        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 1700 {
+        SET PITCH TO 10.
+        SET MYSTEER TO HEADING(AZI,PITCH).
+        PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+        PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
 
     }.
 
@@ -107,27 +123,81 @@ UNTIL SHIP:APOAPSIS > 100000 { //Remember, all altitudes will be in meters, not 
 
 PRINT "100km apoapsis reached, reducing throttle".
 
+//UNLOCK STEERING.
+//SAS ON.
+//WAIT 1.
+//SET SASMODE TO "PROGRADE".
+
+
 UNTIL SHIP:PERIAPSIS > 70001 { // Get us in orbit!
-    SET MYSTEER TO HEADING(AZI,0).
-    LOCK THROTTLE TO 0.25.
+    IF SHIP:altitude < 70000 {
+        SET PITCH TO 0.
+        LOCK THROTTLE TO 1.
+    } ELSE IF SHIP:altitude >= 70000 AND SHIP:altitude < 80000 {
+        SET PITCH TO -3.
+        LOCK THROTTLE TO 0.9.
+    } ELSE IF SHIP:altitude >= 80000 AND SHIP:altitude < 90000 {
+        SET PITCH TO -6.
+        LOCK THROTTLE TO 0.8.
+    } ELSE IF SHIP:altitude >= 90000 AND SHIP:altitude < 100000 {
+        SET PITCH TO -9.
+        LOCK THROTTLE TO 0.7.
+    } ELSE IF SHIP:altitude >= 100000 AND SHIP:altitude < 110000 {
+        SET PITCH TO -12.
+        LOCK THROTTLE TO 0.6.
+    } ELSE IF SHIP:altitude >= 110000 AND SHIP:altitude < 120000 {
+        SET PITCH TO -15.
+        LOCK THROTTLE TO 0.5.
+    } ELSE IF SHIP:altitude >= 120000 AND SHIP:altitude < 130000 {
+        SET PITCH TO -18.
+        LOCK THROTTLE TO 0.4.
+    } ELSE IF SHIP:altitude >= 130000 AND SHIP:altitude < 140000 {
+        SET PITCH TO -21.
+        LOCK THROTTLE TO 0.3.
+    } ELSE IF SHIP:altitude >= 140000 AND SHIP:altitude < 150000 {
+        SET PITCH TO -24.
+        LOCK THROTTLE TO 0.2.
+    } ELSE IF SHIP:altitude >= 150000 AND SHIP:altitude < 160000 {
+        SET PITCH TO 0.
+        LOCK THROTTLE TO 0.1.
+    }.
+    SET MYSTEER TO HEADING(AZI,PITCH).
+    PRINT "Pitching to "+PITCH+" degrees" AT(0,0).
+    PRINT ROUND(SHIP:APOAPSIS,0) AT(0,1).
+    PRINT ROUND(SHIP:PERIAPSIS,0) AT(0,2).
+    WAIT 0.1.
 }.
+
+
+UNLOCK STEERING.
+SAS ON.
+WAIT 1.
+
+LOCK THROTTLE TO 0.
+SET SASMODE TO "RETROGRADE".
 
 PRINT "We have achieved Orbit, lets get down".
 
-SET SASMODE TO "RETROGRADE".
+WAIT 30.
 
 UNTIL SHIP:PERIAPSIS < 69500 {
     SET SASMODE TO "RETROGRADE".
     LOCK THROTTLE TO 0.1.
+    WAIT 0.1.
 }
 
 UNTIL SHIP:APOAPSIS < 69999 {
     IF SHIP:ALTITUDE > 70000 {
         LOCK THROTTLE TO 0.
+        WAIT 1.
+    } ELSE  IF ETA:periapsis < 3 {
+        SET SASMODE TO "RETROGRADE".
+        LOCK THROTTLE TO 1.
     } ELSE {
         SET SASMODE TO "RETROGRADE".
         LOCK THROTTLE TO 0.1.
     }
+    WAIT 0.1.
 }
 
 

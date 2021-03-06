@@ -1,0 +1,60 @@
+{
+    "baobab": [
+        {
+            "lat": "N 00 07 24",
+            "long": "W 075 44 15"
+        },
+        {
+            "lat": "N 00 39 16",
+            "long": "W 077 16 49"
+        },
+        {
+            "lat": "N 00 45 50",
+            "long": "W 077 40 30"
+        },
+        {
+            "lat": "N 45 20 40",
+            "long": "E 136 02 27"
+        },
+        {
+            "long": "E 135 53 16",
+            "lat": "N 45 34 41"
+        },
+        {
+            "lat": "N 46 08 58",
+            "long": "E 135 30 24"
+        },
+        {
+            "long": "E 135 20 13",
+            "lat": "N 46 45 03"
+        },
+        {
+            "lat": "N 47 06 46",
+            "long": "E 135 17 27"
+        },
+        {
+            "long": "E 135 08 08",
+            "lat": "N 47 27 02"
+        }
+    ],
+    "giant_quartz": [
+        {
+            "lat": "N 00 53 29",
+            "long": "W 077 57 58"
+        },
+        {
+            "lat": "N 00 53 32",
+            "long": "W 079 11 44"
+        }
+    ],
+    "easter_eggs": [
+        {
+            "squad monolith": {
+                "lat": "N 00 06 07",
+                "long": "W 074 34 06",
+                "description": "Black Monolith with Squad logo",
+                "has_science": false
+            }
+        }
+    ]
+}

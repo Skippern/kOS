@@ -47,13 +47,41 @@
             "long": -79.195555555555556
         }
     ],
-    "easter_eggs": [
+    "anomalies": [
         {
             "squad monolith": {
-                "lat": 0.101944444444444,
-                "long": 74.568333333333333,
+                "lat": 0.1023,
+                "long": -74.5684,
                 "description": "Black Monolith with Squad logo",
                 "has_science": false
+            },
+            "unknown": {
+                "lat": -0.6402,
+                "long": -80.7688,
+                "description": "vulcano?"
+//                "has_science": false,
+//                "milestone": true
+            },
+            "unknown1": {
+                "lat": 35.5705,
+                "long": -74.9773
+            },
+            "unknown2": {
+                "lat": -28.8083,
+                "long": -13.4401
+            },
+            "unknown3": {
+                "lat": -6.5057,
+                "long": -141.6856,
+                "description": "Pyramids?"
+            },
+            "unknown4": {
+                "lat": 20.6709,
+                "long": -146.4968
+            },
+            "unknown5": {
+                "lat": 81.9551,
+                "long": -128.518
             }
         }
     ]

@@ -3,10 +3,7 @@ clearScreen.
 //SET WP TO LATLNG(-0.2, -76).
 
 SET WP_LIST TO list(
-    LATLNG(-2.5049,-80.8374),
-    LATLNG(-1.4722,-82.2876),
-    LATLNG(-0.1099,-81.7383)
-//    LATLNG(-0.6402,-80.7688)
+    latlng(-0.0492540563607097,-74.6349722944758)
 ).
 SET MAXSPEED TO 10. // max speed for rover to drive
 SET MAXTURNSPEED TO 2.5. // maxspeed in turn
@@ -60,7 +57,7 @@ FOR S IN SENSELIST {
 DECLARE FUNCTION Telemetry {
     SET LINENUM TO 0.
     PRINT "Ground speed is: " + ROUND(groundSpeed,1) + "m/s                      " AT(0,LINENUM).
-    PRINT "Trottle command is: " + ROUND(wheelThrottle * 100,0) + "%                            " AT(0,LINENUM + 1).
+    PRINT "Throttle command is: " + ROUND(wheelThrottle * 100,0) + "%                            " AT(0,LINENUM + 1).
     PRINT "Current Latitude: " + ROUND(SHIP:geoposition:lat, 4) + "               " AT(0,LINENUM + 2).
     PRINT "Current Longitude: " + ROUND(SHIP:geoposition:lng, 4) + "                " AT(0,LINENUM + 3).
     SET currentPitch to ROUND(90 - VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:FOREVECTOR),1).
@@ -74,9 +71,10 @@ DECLARE FUNCTION WPTelemetry {
     DECLARE PARAMETER WP.
     SET LINENUM TO 7.
     PRINT "Bearing to target is: " + ROUND(WP:BEARING,4) + "              " AT(0,LINENUM). 
-    PRINT "Distance Remaining to WP: " + FLOOR(WP:DISTANCE) + "m                " AT (0,LINENUM + 1).
-    PRINT "WP Latitude: " + ROUND(WP:LAT, 4) + "        " AT(0,LINENUM + 2).
-    PRINT "WP Longitude: " + ROUND(WP:LNG, 4) + "         " AT(0,LINENUM + 3).
+    PRINT "Direction to target is: " + ROUND(WP:HEADING,1) + "              " AT(0,LINENUM + 1).
+    PRINT "Distance Remaining to WP: " + FLOOR(WP:DISTANCE) + "m                " AT (0,LINENUM + 2).
+    PRINT "WP Latitude: " + ROUND(WP:LAT, 4) + "        " AT(0,LINENUM + 3).
+    PRINT "WP Longitude: " + ROUND(WP:LNG, 4) + "         " AT(0,LINENUM + 4).
 }
 
 DECLARE FUNCTION CHARGE {
@@ -209,12 +207,8 @@ DECLARE FUNCTION DeTour {
     SET POWER TO POWER * -0.5.
     Telemetry().
     PRINT "OBSTRUCTION: Position LATLNG("+ROUND(SHIP:geoposition:lat, 4)+","+ROUND(SHIP:geoposition:lng, 4)+")".
-//    LOG "OBSTRUCTION: Position LATLNG("+ROUND(SHIP:geoposition:lat, 4)+","+ROUND(SHIP:geoposition:lng, 4)+")".
-    // make a WP 100m behind. (really needed?)
-    // make a WP 200m to the right
     SET WP_DETOUR TO SHIP:BODY:GEOPOSITIONOF(SHIP:POSITION + 200 * SHIP:FACING:STARVECTOR). 
     SET WP_AFT TO SHIP:BODY:GEOPOSITIONOF(SHIP:POSITION + -50 * SHIP:FACING:FOREVECTOR). 
-    // drive to these WPs
     DRIVE(WP_AFT).
     DRIVE(WP_DETOUR).
 }
@@ -250,8 +244,8 @@ DECLARE FUNCTION DRIVE {
             IF groundSpeed > MAXTURNSPEED * 0.90 { SET POWER TO POWER - 0.01.} // near max turn speed
             IF groundSpeed > MAXTURNSPEED { SET POWER TO 0. } // max turn speed
             IF groundSpeed > MAXTURNSPEED * 1.2 { // Fuck!
-                BREAKS ON.
                 SET POWER TO 0.
+                BREAKS ON.
                 LEGS ON.
                 WAIT 3.
                 }
@@ -267,9 +261,9 @@ DECLARE FUNCTION DRIVE {
             LEGS OFF.
         }
         IF groundSpeed > MAXSPEED * 1.2 {
+            SET POWER TO 0.
             BREAKS ON. 
             LEGS ON. 
-            SET POWER TO 0.
             WAIT 3.
         }
         IF POWER > 1 { SET POWER TO 1.}

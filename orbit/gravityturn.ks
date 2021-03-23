@@ -248,7 +248,7 @@ UNTIL ETA:apoapsis < 15 { // seconds before Ap for final burn
     SET MYSTEER TO SHIP:PROGRADE.
 }
 PRINT "Initiating final burn!".
-UNTIL SHIP:periapsis > 71000 {
+UNTIL SHIP:periapsis > MAX(BODY:ATM:HEIGHT * 1.1, 50000) {
     SET THROTTLE TO 1.0.
     SET MYSTEER TO SHIP:PROGRADE.
     WAIT 0.1.

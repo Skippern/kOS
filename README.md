@@ -34,7 +34,21 @@ All scripts will be tested, and adjustments might occure rapidly.
 
 # Complete
 
-(nothing yet)
+* LIB
+
+** Countdown - lib countdown, with HUD output, meant to be run directly from other programs.
+
+* Telemetry
+
+** Orbit - All you need to know from a vessel in orbit or suborbit.
+
+* Rover
+
+ ** Waypoint drivig - bad handling of obstacles and steep terrain, does not avoid water.
+
+* Orbit
+
+** Gravity Turn - does gravity turn to get effectively to orbit while saving fuel.
 
 # System Details
 
@@ -43,5 +57,3 @@ Scripts are tested and should work with following conditions:
 * KSP 1.11.1 (Windows10)
 
 * kOS Scriptable Autopilot System 1.3.2.0
-
-* MechJeb2 auto staging (not sure if needed)

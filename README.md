@@ -36,19 +36,19 @@ All scripts will be tested, and adjustments might occure rapidly.
 
 * LIB
 
-** Countdown - lib countdown, with HUD output, meant to be run directly from other programs.
+    * Countdown - lib countdown, with HUD output, meant to be run directly from other programs.
 
 * Telemetry
 
-** Orbit - All you need to know from a vessel in orbit or suborbit.
+    * Orbit - All you need to know from a vessel in orbit or suborbit.
 
 * Rover
 
- ** Waypoint drivig - bad handling of obstacles and steep terrain, does not avoid water.
+    * Waypoint drivig - bad handling of obstacles and steep terrain, does not avoid water.
 
 * Orbit
 
-** Gravity Turn - does gravity turn to get effectively to orbit while saving fuel.
+    * Gravity Turn - does gravity turn to get effectively to orbit while saving fuel.
 
 # System Details
 

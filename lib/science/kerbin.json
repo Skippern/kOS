@@ -49,39 +49,50 @@
     ],
     "anomalies": [
         {
-            "squad monolith": {
+            "Baikerbanour": {
+                "lat": 20.679167,
+                "long": -146.501111,
+                "description": "CommNet site, dish antenna"
+            },
+            "Crater Rim": {
+                "lat": 9.45,
+                "long": -172.110278,
+                "description": "CommNet site, dish antenna"
+            },
+            "Nye Island": {
+                "lat": 5.363611,
+                "long": 108.548056,
+                "description": "CommNet site, dish antenna"
+            },
+            "Harvester Massif": {
+                "lat": -11.95,
+                "long": 33.740278,
+                "description": "CommNet site, dish antenna"
+            },
+            "North Station": {
+                "lat": 63.095,
+                "long": -90.079722,
+                "description": "CommNet site, dish antenna"
+            },
+            "Mesa South": {
+                "lat": -59.589722,
+                "long": -25.861667,
+                "description": "CommNet site, dish antenna"
+            },
+            "Inland KSC": {
+                "lat": 20.6575,
+                "long": -146.420556,
+                "description": "The old KSC from an earlier version of the game, some structures sitll remain."
+            },
+            "monolith KSC": {
                 "lat": 0.1023,
                 "long": -74.5684,
                 "description": "Black Monolith with Squad logo",
                 "has_science": false
             },
-            "unknown": {
-                "lat": -0.6402,
-                "long": -80.7688,
-                "description": "vulcano?"
-//                "has_science": false,
-//                "milestone": true
-            },
-            "unknown1": {
-                "lat": 35.5705,
-                "long": -74.9773
-            },
-            "unknown2": {
-                "lat": -28.8083,
-                "long": -13.4401
-            },
-            "unknown3": {
-                "lat": -6.5057,
-                "long": -141.6856,
-                "description": "Pyramids?"
-            },
-            "unknown4": {
-                "lat": 20.6709,
-                "long": -146.4968
-            },
-            "unknown5": {
-                "lat": 81.9551,
-                "long": -128.518
+            "flying saucer": {
+                "lat": 81.9552,
+                "long": -128.5139
             }
         }
     ]

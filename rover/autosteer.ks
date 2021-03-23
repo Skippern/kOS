@@ -1,9 +1,9 @@
 clearScreen.
 
 //SET WP TO LATLNG(-0.2, -76).
-
+// WAYPOINT("Scott's Odyssey Beta"):GEOPOSITION,
 SET WP_LIST TO list(
-    latlng(-0.0492540563607097,-74.6349722944758)
+
 ).
 SET MAXSPEED TO 10. // max speed for rover to drive
 SET MAXTURNSPEED TO 2.5. // maxspeed in turn
@@ -31,7 +31,9 @@ PRINT "RX Missing".
 PRINT "Max Electric Charge: " + MAXCHARGE.
 print "Minimum operational charge set to: " + MINCHARGE.
 
-SET POWER TO 0.
+SET currentPitch TO 0.
+SET oldPitch TO 0.
+SET POWER TO (currentPitch + 3) / 100.
 
 LIGHTS ON.
 BREAKS ON.
@@ -42,7 +44,10 @@ WAIT 3.
 LIST SENSORS IN SENSELIST.
 FOR S IN SENSELIST {
     PRINT "SENSOR: " + S:TYPE.
-    PRINT "VALUE: " + S:DISPLAY.
+//    PRINT "VALUE: " + S:DISPLAY.
+//    IF S:TYPE = "TEMP" {
+//        PRINT "VALUE: " + S:TEMP.
+//    }
     WAIT 1.
     IF S:ACTIVE {
         PRINT "       ACTIVE".
@@ -61,10 +66,15 @@ DECLARE FUNCTION Telemetry {
     PRINT "Current Latitude: " + ROUND(SHIP:geoposition:lat, 4) + "               " AT(0,LINENUM + 2).
     PRINT "Current Longitude: " + ROUND(SHIP:geoposition:lng, 4) + "                " AT(0,LINENUM + 3).
     SET currentPitch to ROUND(90 - VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:FOREVECTOR),1).
-    PRINT "Heading: " + ROUND(mod(360 - latlng(90,0):bearing,360), 0) + " / Pitch: " + currentPitch + "                     " AT(0,LINENUM + 4).
+    SET POWER to POWER + (currentPitch / 100) - (oldPitch / 100).
+    SET oldPitch TO currentPitch.
+    SET currentRoll TO ROUND(90 - VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:STARVECTOR),1).
+    PRINT "Heading: " + ROUND(mod(360 - latlng(90,0):bearing,360), 1) + " / Pitch: " + currentPitch + " / Roll: " + currentRoll + "                     " AT(0,LINENUM + 4).
 //    PRINT "Heading/Roll/Pitch to be implemented!                          " AT (0,LINENUM + 4).
     PRINT "Steering: " + ROUND(wheelSteering, 3) + "                   " AT(0,LINENUM + 5).
-    PRINT "Electric Charge: " + ROUND(SHIP:ELECTRICCHARGE, 2) + " / " + ROUND((SHIP:ELECTRICCHARGE/MAXCHARGE)*100,1) + "%      " AT(0,LINENUM + 6).
+    SET Charger to "".
+//    IF SENSOR:light > 0 { SET Charger TO "^".} ELSE { SET Charger TO "". }
+    PRINT "Electric Charge: " + ROUND(SHIP:ELECTRICCHARGE, 2) + " / " + ROUND((SHIP:ELECTRICCHARGE/MAXCHARGE)*100,1) + "% "+Charger+"     " AT(0,LINENUM + 6).
 }
 
 DECLARE FUNCTION WPTelemetry {
@@ -79,6 +89,7 @@ DECLARE FUNCTION WPTelemetry {
 
 DECLARE FUNCTION CHARGE {
     SET wheelThrottle TO 0.
+    KUNIVERSE:timewarp:cancelwarp().
     BREAKS ON.
     LEGS ON.
     WAIT 1.
@@ -96,6 +107,8 @@ DECLARE FUNCTION CHARGE {
     }
     // UNTIL CHARGED WAIT
     UNTIL SHIP:ELECTRICCHARGE > FULLCHARGE {
+        IF SHIP:ELECTRICCHARGE > FULLCHARGE * 0.95 { KUNIVERSE:timewarp:cancelwarp().}
+//        PRINT "Solar Panel Exposure: " + SENSOR:light AT(0,20).
         Telemetry().
         WAIT 1.
     }
@@ -113,37 +126,26 @@ DECLARE FUNCTION CHARGE {
 }
 
 DECLARE FUNCTION SCIENCE {
+    KUNIVERSE:timewarp:cancelwarp().
     SET POWER TO 0.
     SET wheelThrottle TO POWER.
     Telemetry().
-//    SET mysensors TO list(
-//        "sensorThermometer",
-//        "sensorBarometer",
-//        "sensorAccelerometer",
-//        "sensorAtmosphere"
-//    ).
+    WAIT 1.
+    Telemetry().
     SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
     WAIT 1.
     Telemetry().
     PANELS ON.
     PRINT "Preparing Science!".
-//    SET P TO SHIP:PARTSNAMED("mediumDishAntenna")[0].
-//    SET A TO P:GETMODULE("ModuleRTAntenna").
-//    A:DOEVENT("Activate").
-//    A:SETIELD("target", "Mission Control").
     SET RADIODELAY TO ship:connection:delay + 1.
     until SHIP:ELECTRICCHARGE > FULLCHARGE * 0.95 {
         WAIT 1.
         Telemetry().
     }
     WAIT 1.
-    // do science stuff
     FOR s IN mysensors {
-//        PRINT s.
-//        SET P TO SHIP:PARTSNAMED(s)[0].
-//        SET M TO P:GETMODULE("ModuleScienceExperiment").
         SET M TO s:GETMODULE("ModuleScienceExperiment").
-        PRINT "Trying Scinece for " + s:TITLE.
+        PRINT "Gathering Science Data from " + s:TITLE.
     // check connection and empty buffer
         Telemetry().
         if M:HASDATA {
@@ -171,12 +173,11 @@ DECLARE FUNCTION SCIENCE {
         M:DEPLOY.
         WAIT 1.
         Telemetry().
-    // check connection and empty buffer
         if M:HASDATA {
             PRINT "Experiment yelded " + M:DATA[0]:DATAAMOUNT + " Mits of data to transmit.".
             M:TRANSMIT.
             SET TRANSMITTIME TO CEILING(RADIODELAY + M:DATA[0]:DATAAMOUNT / 2.85) * 1.1.
-             // Slowest antenna transmits 2.86 Mits per second.
+            // Slowest antenna transmits 2.86 Mits per second.
             PRINT "Transmit Time Estimated to " + ROUND(TRANSMITTIME,1) + " seconds".
             PANELS ON.
             UNTIL TRANSMITTIME < 0 {
@@ -197,18 +198,26 @@ DECLARE FUNCTION SCIENCE {
 
 DECLARE FUNCTION PathObstructed {
     IF POWER > 0.9 AND groundSpeed < 0.3 {
+        KUNIVERSE:timewarp:cancelwarp().
         return true.
     }
     return false.
 }
 
 DECLARE FUNCTION DeTour {
-    PRINT "Need to do a small detour".
-    SET POWER TO POWER * -0.5.
-    Telemetry().
+//    PRINT "Need to do a small detour".
+// This need to be logged in some way...
     PRINT "OBSTRUCTION: Position LATLNG("+ROUND(SHIP:geoposition:lat, 4)+","+ROUND(SHIP:geoposition:lng, 4)+")".
     SET WP_DETOUR TO SHIP:BODY:GEOPOSITIONOF(SHIP:POSITION + 200 * SHIP:FACING:STARVECTOR). 
     SET WP_AFT TO SHIP:BODY:GEOPOSITIONOF(SHIP:POSITION + -50 * SHIP:FACING:FOREVECTOR). 
+    SET POWER TO POWER * -0.5.
+    SET I TO 0.
+    UNTIL I > 5 {
+        Telemetry().
+        SET I TO I + 1.
+        WAIT 1.
+    }
+    Telemetry().
     DRIVE(WP_AFT).
     DRIVE(WP_DETOUR).
 }
@@ -219,41 +228,68 @@ DECLARE FUNCTION DRIVE {
     Telemetry().
     WAIT 1.
     Telemetry().
+    SET wheelThrottle TO POWER.
     UNTIL WP:DISTANCE < 20 {
         IF PathObstructed() {
             DeTour().
         }
         SET wheelSteering TO WP.
+        IF WP:DISTANCE < 200 { KUNIVERSE:timewarp:cancelwarp(). }
         IF WP:DISTANCE > 120 {
             IF groundSpeed > MAXSPEED * 0.90 { SET POWER TO POWER - 0.01.} // Near max speed
             IF groundSpeed > MAXSPEED * 1.05 AND POWER > 0 { SET POWER TO 0. } // Power cutof
             IF groundSpeed > MAXSPEED { SET POWER TO POWER - 0.01.} // at max speed
             IF groundSpeed < MAXSPEED * 0.80 { SET POWER TO POWER + 0.01.} // less than 80% speed
-        } ELSE IF WP:DISTANCE < 120 AND groundSpeed > MAXSPEED * 0.9 {
-            SET POWER TO POWER - 0.01.
-        } ELSE IF WP:DISTANCE < 100 AND groundSpeed > MAXSPEED * 0.8 {
-            SET POWER TO POWER - 0.01.
-        } ELSE IF WP:DISTANCE < 80 AND groundSpeed > MAXSPEED * 0.7 {
-            SET POWER TO POWER - 0.01.
-        } ELSE IF WP:DISTANCE < 60 AND groundSpeed > MAXSPEED * 0.6 {
-            SET POWER TO POWER - 0.01.
-        } ELSE IF WP:DISTANCE < 40 AND groundSpeed > MAXSPEED * 0.5 { SET POWER TO POWER - 0.01. } // Arriving, slow down
+        } ELSE IF WP:DISTANCE < 120 {
+            IF groundSpeed > MAXSPEED * 0.9 {
+                SET POWER TO POWER - 0.01.
+            } ELSE { SET POWER TO POWER + 0.01. }
+        } ELSE IF WP:DISTANCE < 100 {
+            IF groundSpeed > MAXSPEED * 0.8 {
+                SET POWER TO POWER - 0.01.
+            } ELSE { SET POWER TO POWER + 0.01. }
+        } ELSE IF WP:DISTANCE < 80 {
+            IF groundSpeed > MAXSPEED * 0.7 {
+                SET POWER TO POWER - 0.01.
+            } ELSE { SET POWER TO POWER + 0.01. }
+        } ELSE IF WP:DISTANCE < 60 {
+            IF groundSpeed > MAXSPEED * 0.6 {
+                SET POWER TO POWER - 0.01.
+            } ELSE { SET POWER TO POWER + 0.01. }
+        } ELSE IF WP:DISTANCE < 40 {
+            IF groundSpeed > MAXSPEED * 0.5 { 
+                SET POWER TO POWER - 0.01. 
+            } ELSE { SET POWER TO POWER + 0.01. } // Arriving, slow down
+        }
         IF groundSpeed < MAXSPEED * 0.2 { SET POWER TO POWER + 0.01. }
-        IF groundSpeed < 0.3 AND POWER < 0 { SET POWER TO 0. } // Going Backwords!
+//        IF groundSpeed < 0.3 AND POWER < 0 { SET POWER TO 0. } // Going Backwords!
         IF WP:BEARING > 10 OR WP:BEARING < -10 { // sharp turn
             IF groundSpeed > MAXTURNSPEED * 0.90 { SET POWER TO POWER - 0.01.} // near max turn speed
             IF groundSpeed > MAXTURNSPEED { SET POWER TO 0. } // max turn speed
             IF groundSpeed > MAXTURNSPEED * 1.2 { // Fuck!
-                SET POWER TO 0.
+                SET POWER TO (currentPitch + 3) / 100.
                 BREAKS ON.
                 LEGS ON.
-                WAIT 3.
-                }
+                SET Timer TO 3.
+                print "overspeed loop sharp turn " + Timer.
+//                UNTIL Timer < 0. {
+//                    print Timer.
+//                    Telemetry().
+//                    SET Timer TO Timer - 1.
+//                    WAIT 1.
+//                    }
+                Telemetry().
+                WAIT 1.
+                Telemetry().
+                WAIT 1.
+                Telemetry().
+                WAIT 1.
+            }
             IF groundSpeed < MAXTURNSPEED * 0.85 { SET POWER TO POWER + 0.01. // low turn speed
                 BREAKS OFF.
                 // If Legs are on, preset power to match pitch and set legs off
                 LEGS OFF.
-                }
+            }
             WAIT 0.1.
         } ELSE {
             BREAKS OFF.
@@ -261,10 +297,22 @@ DECLARE FUNCTION DRIVE {
             LEGS OFF.
         }
         IF groundSpeed > MAXSPEED * 1.2 {
-            SET POWER TO 0.
+            SET POWER TO (currentPitch + 3) / 100.
             BREAKS ON. 
             LEGS ON. 
-            WAIT 3.
+            SET Timer TO 3.
+            print "overspeed loop " + Timer.
+//            UNTIL Timer < 0. {
+//                Telemetry().
+//                SET Timer TO Timer - 1.
+//                WAIT 1.
+//            }
+            Telemetry().
+            WAIT 1.
+            Telemetry().
+            WAIT 1.
+            Telemetry().
+            WAIT 1.
         }
         IF POWER > 1 { SET POWER TO 1.}
         IF POWER < -1 { SET POWER TO -1.}
@@ -278,7 +326,8 @@ DECLARE FUNCTION DRIVE {
     BREAKS ON.
     LEGS ON.
     WAIT 1.
-    PRINT "Reached WP at " + ROUND(WP:LAT,4) + "/" + ROUND(WP:LNG,4) + ". *BEEP!*".
+//    PRINT "Reached WP at " + ROUND(WP:LAT,4) + "/" + ROUND(WP:LNG,4) + ". *BEEP!*".
+    HUDTEXT("Reached WP at " + ROUND(WP:LAT,4)+"/"+ROUND(WP:LNG,4), 10, 1, 18, MAGENTA, True).
 }
 
 Telemetry().
@@ -302,7 +351,8 @@ UNTIL SHIP:ELECTRICCHARGE > MAXCHARGE *0.9 {
 }
 //SET SHIP:CONTROL:PILOTWHEELSTEER.
 //SET SHIP:CONTROL:pilotwheelthrottle.
-SET SHIP:CONTROL:NEUTRALIZE TO True.
+WAIT 1.
+SET SHIP:CONTROL:NEUTRALIZE TO True. // kOS not in control anymore.
 WAIT 5.
 PRINT "Script Releasing Control!".
 PRINT "Returning ROVER " + SHIPNAME + " to MANUAL CONTROL!".

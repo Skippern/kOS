@@ -17,7 +17,7 @@ UNTIL false {
         PRINT "Landed on " + SHIP:BODY:NAME + "                   " AT(0,LINENUM).
     } ELSE IF SHIP:STATUS = "SPLASHED" {
         PRINT "Splashed in " + SHIP:BODY:NAME + "'s Oceans                   " AT(0,LINENUM).
-    } ELSE IF SHIP:STATUS = "PRELAUNCHE" {
+    } ELSE IF SHIP:STATUS = "PRELAUNCH" {
         PRINT "Pre-Launche preparations at " + SHIP:BODY:NAME + "                   " AT(0,LINENUM).
     } ELSE IF SHIP:STATUS = "FLYING" {
         PRINT "Flying over " + SHIP:BODY:NAME + "                   " AT(0,LINENUM).
@@ -67,17 +67,23 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     PRINT "Eccentricity: " + ROUND(SHIP:ORBIT:eccentricity,5) + "       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
+    
     // Need to capture "Infinitys" for when orbit changes between bodies, or drifting between orbits.
-    SET tmp to ROUND(SHIP:ORBIT:PERIOD,1).
-    SET hr to FLOOR(tmp / 3600).
-    SET tmp to tmp - (hr * 3600). // removing hours
-    SET min to FLOOR(tmp / 60).
-    SET tmp to tmp - (min * 60). // removing minutes
-    SET LAPTIME TO hr+"h "+min+"m "+ROUND(tmp,1).
+    IF SHIP:apoapsis < 0 {
+        SET LAPTIME TO "Infinity".
+    } ELSE {
+        SET tmp to ROUND(SHIP:ORBIT:PERIOD,1).
+        SET hr to FLOOR(tmp / 3600).
+        SET tmp to tmp - (hr * 3600). // removing hours
+        SET min to FLOOR(tmp / 60).
+        SET tmp to tmp - (min * 60). // removing minutes
+        SET LAPTIME TO hr+"h "+min+"m "+ROUND(tmp,1).
+    }
     PRINT "Orbital Period: " + LAPTIME + "s       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     SET NodeEta TO ROUND(ETA:NEXTNODE,1).
-    IF NodeEta > SHIP:ORBIT:period * 10 { SET NodeEta TO "N/A". // If you cannot reach node in 10 laps, than it is unreachable 
+    IF SHIP:apoapsis < 0 { SET NodeEta TO "N/A". // Yikes!
+    } ELSE IF NodeEta > SHIP:ORBIT:period * 10 { SET NodeEta TO "N/A". // If you cannot reach node in 10 laps, than it is unreachable 
     } ELSE IF NodeEta < 60 { SET NodeEta TO NodeEta + "s". 
     } ELSE {
         SET tmp to NodeEta.
@@ -88,6 +94,7 @@ UNTIL false {
         SET NodeEta TO hr+"h "+min+"m "+ROUND(tmp,0)+"s".
     }
     PRINT "Next Maneuver Node in " + NodeEta + "       " AT(0,LINENUM).
+
     //Resources
     SET LINENUM TO LINENUM + 1.
     PRINT "Electric Charge: " + ROUND(SHIP:ELECTRICCHARGE, 2) + " / " + ROUND((SHIP:ELECTRICCHARGE/MAXCHARGE)*100,1) + "%      " AT(0,LINENUM).

@@ -30,10 +30,16 @@ UNTIL false {
     }
     // Here we should identify radio link to KSC, how many hops, and total signal strength
 //PRINT    SHIP:CONNECTION:destination.
+// Stats such as Signal Strength, and connected station is desired here
+
     // Behaviour
+    SET LINENUM TO LINENUM + 1.
     SET LINENUM TO LINENUM + 1.
     PRINT "Yaw: " + ROUND(VectorAngle(SHIP:UP:TOPVECTOR,SHIP:FACING:TOPVECTOR), 1) + "* / Pitch: " + ROUND(VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:FOREVECTOR), 1) + "* / Roll: " + ROUND(VectorAngle(SHIP:UP:STARVECTOR,SHIP:FACING:STARVECTOR), 1) + "*                    " AT(0,LINENUM).
 //    PRINT "Yaw: " + ROUND(SHIP:direction:yaw, 1) + " / Pitch: " + ROUND(SHIP:direction:pitch, 1) + " / Roll: " + ROUND(SHIP:direction:roll, 1) + "                    " AT(0,LINENUM).
+// Add Throttle position, TWR, acceleration, G, and maneuver mode here
+
+    SET LINENUM TO LINENUM + 1.
     SET LINENUM TO LINENUM + 1.
     IF ETA:apoapsis < 60 {
         SET APO_ETA TO ROUND(ETA:apoapsis,1).
@@ -67,7 +73,7 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     PRINT "Eccentricity: " + ROUND(SHIP:ORBIT:eccentricity,5) + "       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    
+
     // Need to capture "Infinitys" for when orbit changes between bodies, or drifting between orbits.
     IF SHIP:apoapsis < 0 {
         SET LAPTIME TO "Infinity".
@@ -96,6 +102,10 @@ UNTIL false {
     PRINT "Next Maneuver Node in " + NodeEta + "       " AT(0,LINENUM).
 
     //Resources
+    SET LINENUM TO LINENUM + 1.
+    IF SHIP:ELECTRICCHARGE > MAXCHARGE {
+        SET MAXCHARGE TO SHIP:ELECTRICCHARGE.
+    }
     SET LINENUM TO LINENUM + 1.
     PRINT "Electric Charge: " + ROUND(SHIP:ELECTRICCHARGE, 2) + " / " + ROUND((SHIP:ELECTRICCHARGE/MAXCHARGE)*100,1) + "%      " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.

@@ -37,6 +37,11 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     PRINT "Yaw: " + ROUND(VectorAngle(SHIP:UP:TOPVECTOR,SHIP:FACING:TOPVECTOR), 1) + "* / Pitch: " + ROUND(VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:FOREVECTOR), 1) + "* / Roll: " + ROUND(VectorAngle(SHIP:UP:STARVECTOR,SHIP:FACING:STARVECTOR), 1) + "*                    " AT(0,LINENUM).
 //    PRINT "Yaw: " + ROUND(SHIP:direction:yaw, 1) + " / Pitch: " + ROUND(SHIP:direction:pitch, 1) + " / Roll: " + ROUND(SHIP:direction:roll, 1) + "                    " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
+    IF (SAS) { SET tmp TO "ON / ". } ELSE { SET tmp TO "OFF/ ". }
+    PRINT "SAS: " + tmp + SASMODE + "           " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
+    PRINT "Throttle: " + ROUND(THROTTLE * 100, 1) + "%            " AT(0,LINENUM).
 // Add Throttle position, TWR, acceleration, G, and maneuver mode here
 
     SET LINENUM TO LINENUM + 1.

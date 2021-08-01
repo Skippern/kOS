@@ -12,6 +12,9 @@ SET PITCHUP TO 90.
 SET TILTED TO 82.5.
 //SET TILTED TO 80.
 
+// Hardcoded minimum tank level (in units) to be considered empty.
+SET EMPTY TO 0.03.
+
 SET MyStatus TO "Preparing Lanuche Sequence".
 SET MyAcceleration TO 0.
 SET MyThrottle TO 0.
@@ -22,7 +25,7 @@ DECLARE FUNCTION Telemetry {
     PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,1).
     PRINT "Acceleration: " + MyAcceleration + "         " AT(0,2).
     PRINT "TWR:          " + ROUND(getTWR(),2) + "      " AT(0,3).
-    PRINT "Throttle:     " + ROUND(MyThrottle * 100, 1) + "%                                " AT(0,4).
+    PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%                                " AT(0,4).
 }
 PRINT "Telemetry RX".
 PRINT "Telemetry RX".
@@ -109,7 +112,11 @@ UNTIL SHIP:verticalspeed > 0 {
 SET MyStatus TO "Lift Off".
 PRINT "We have Lift off!".
 //PRINT "TWR at Liftoff: " + ROUND(getTWR(),3).
-LOCK STEERING TO MySteer.
+IF SAS {
+    UNLOCK STEERING.
+} ELSE {
+    LOCK STEERING TO MySteer.
+}
 SET MyThrottle TO 1.0.
 LOCK THROTTLE TO MyThrottle.
 UNTIL SHIP:verticalspeed > 100 {
@@ -120,7 +127,11 @@ SET MyStatus TO "Craft Tilted to Initiate Turn".
 PRINT "Starting Gravity Turn".
 //PRINT "TWR at Start of Gravity Turn: " + ROUND(getTWR(),3).
 SET MySteer TO HEADING(CalcAzi(INC),TILTED).
-LOCK STEERING TO MySteer.
+IF SAS {
+    UNLOCK STEERING.
+} ELSE {
+    LOCK STEERING TO MySteer.
+}
 SET MyThrottle TO 1.0.
 LOCK THROTTLE TO MyThrottle.
 Telemetry().
@@ -129,7 +140,11 @@ WAIT 5. // The next step MUST be delayed
 UNTIL readyToPrograde() {
     Telemetry().
     WAIT 0.1.
-    LOCK STEERING TO MySteer.
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
 }
 //UNLOCK STEERING.
 WAIT 0.1.
@@ -139,16 +154,18 @@ WAIT 0.1.
 Telemetry().
 SET SASMODE TO "PROGRADE".
 SET MySteer TO SHIP:PROGRADE.
-LOCK STEERING TO MySteer.
+IF SAS {
+    UNLOCK STEERING.
+} ELSE {
+    LOCK STEERING TO MySteer.
+}
 SET MyStatus TO "Prograde Burn".
 PRINT "Changing to SAS PROGRADE Mode. (Ending Initial lift)".
-//PRINT "TWR at start of PROGRADE: " + ROUND(getTWR(),3).
+PRINT "TWR at start of PROGRADE: " + ROUND(getTWR(),3).
 //SET MyThrottle TO THROTTLE.
 Telemetry().
 
 // Adjust vessel thrust to 1G
-
-SET EMPTY TO 0.03.
 
 SET PITCHLOCK TO False.
 
@@ -156,16 +173,19 @@ SET PITCHLOCK TO False.
 UNTIL SHIP:apoapsis > MAX(BODY:ATM:HEIGHT * 2, 50000) { // AP to minimum 2 athmosphere height, or 50.000m
     SET MyThrottle TO MAX(0.001, MIN(MyThrottle, 1)). // Keep minimum burn all the way
     LOCK THROTTLE TO MyThrottle.
-    LOCK STEERING TO MySteer.
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
     Telemetry().
 
     IF STAGE:SOLIDFUEL < EMPTY AND STAGE:LIQUIDFUEL < EMPTY {
         LOCK THROTTLE TO 0.015. // Make sure a minimum of thrust when staging
+        WAIT 0.5.
         STAGE.
-        WAIT 2.5.
+        WAIT 2.
         LOCK THROTTLE TO MyThrottle.
-        IF getTWR = 0 { STAGE. 
-            WAIT 2.5. }
     }
 
     // Before maxQ
@@ -302,7 +322,11 @@ UNTIL SHIP:periapsis > MAX(BODY:ATM:HEIGHT * 1.1, 50000) {
     }
     SET MyThrottle TO MIN(MAX(MyThrottle, 0.015), 1).
     LOCK THROTTLE TO MyThrottle.
-    LOCK STEERING TO MySteer.
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
     WAIT 0.1.
 }
 

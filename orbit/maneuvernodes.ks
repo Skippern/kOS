@@ -6,7 +6,7 @@
 CLEARSCREEN.
 SAS OFF.
 SET MYSTEER TO HEADING(0,0).
-//LOCK STEERING TO MYSTEER.
+LOCK STEERING TO MYSTEER.
 SET BurnPhase TO False.
 
 UNTIL False {
@@ -14,13 +14,13 @@ UNTIL False {
     IF BurnPhase {
         SET dBurn TO NEXTNODE:DELTAV:MAG / 36.
         SET MYSTEER TO NEXTNODE:DELTAV.
-        SET THROTTLE TO MIN(1.0, dBurn).
+        LOCK THROTTLE TO MIN(1.0, dBurn).
         PRINT " DO BURN!                                                " AT(0,0).
         PRINT "Delta Burn = "+ROUND(dBurn,1)+" and Throttle Command="+ROUND(THROTTLE*100,1)+"%          " AT(0,2).
         IF dBurn < 0.025 { 
             SET BurnPhase TO False. 
             UNLOCK STEERING.
-            SET THROTTLE TO 0.
+            LOCK THROTTLE TO 0.
             UNLOCK THROTTLE.
             REMOVE NEXTNODE. // Might not work.
         }
@@ -28,7 +28,7 @@ UNTIL False {
     } ELSE IF (ETA:NEXTNODE > 600 ) { // we don't bother to prepare nothing while node is more than 10 minutes away
         // check that we actually have a node and print out estimated time before a longer wait (time in minutes)
         PRINT "NO NODE OR NODE FAR AWAY" AT(0,0).
-        SET THROTTLE TO 0.
+        LOCK THROTTLE TO 0.
         SET nextETA TO ROUND(ETA:NEXTNODE / 60,0).
         SET hr TO FLOOR(nextETA / 60).
         SET nextETA TO ROUND(nextETA - (hr * 60),0).
@@ -57,8 +57,11 @@ UNTIL False {
             WAIT 0.1.
         } ELSE IF NEXTNODE:ETA < 0 {
             PRINT "NODE PASSED, SET NEW NODE OR WAIT FOR NEXT ROUND!                " AT(0,0).
-            SET THROTTLE TO 0.
+            LOCK THROTTLE TO 0.
+            SET BurnPhase TO False.
             WAIT 1.
+            UNLOCK THROTTLE.
+            UNLOCK STEERING.
         } ELSE {
             SET tmp TO NEXTNODE:ETA.
             PRINT "ENTER BURN SEQUENCE                                " AT(0,0).

@@ -11,8 +11,8 @@ SET MyThrottle TO 0.
 
 DECLARE FUNCTION Telemetry {
     PRINT MyStatus + "                             " AT(0,0).
-    PRINT "Throttle:     " + ROUND(MyThrottle * 100, 1) + "%     " AT(0,1).
-    IF SAS { SET SASStatus TO " ON/". } ELSE { SET SASStatus TO "OFF/". }
+    PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%     " AT(0,1).
+    IF SAS { SET SASStatus TO "ON  / ". } ELSE { SET SASStatus TO "OFF / ". }
     PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,2).
 }
 PRINT "Telemetry RX".
@@ -53,7 +53,11 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.95 {
         SET MyThrottle TO 0.
     }
     LOCK THROTTLE TO MyThrottle.
-    LOCK STEERING TO MySteer.
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
     Telemetry().
     WAIT 0.1.
 }
@@ -67,12 +71,17 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height
     SET MySteer TO SHIP:RETROGRADE.
     SET SASMODE TO "RETROGRADE".
     IF SHIP:altitude < BODY:ATM:height {
-        SET MyThrottle TO 0.05.
+        SET maxThrust TO ROUND( MAX( MIN(101 - (ETA:periapsis), 100) / 100, 0), 4).
+        SET MyThrottle TO MAX(maxThrust, 0.001).
     } else {
         SET MyThrottle TO 0.
     }
     LOCK THROTTLE TO MyThrottle.
-    LOCK STEERING TO MySteer.
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
     Telemetry().
     WAIT 0.1.
 }
@@ -84,7 +93,11 @@ Telemetry().
 UNTIL (SHIP:LIQUIDFUEL < 5 AND SHIP:SOLIDFUEL < 5) {
     SET SASMODE TO "RETROGRADE".
     SET MySteer TO SHIP:RETROGRADE.
-    LOCK STEERING TO MySteer.
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
     LOCK THROTTLE TO 1.
     Telemetry().
     WAIT 1.
@@ -104,7 +117,7 @@ SET RELEASED TO False.
 // Launch Drugeshutes
 PRINT "Preparing Launch of Parachutes".
 WHEN (NOT CHUTESSAFE) THEN {
-    PRINT "Parachute activated at " + ROUND(SHIP:altitude,0) +"m".
+    PRINT "Parachute activated at " + ROUND(SHIP:altitude,0) +"m / " + ROUND(SHIP:AIRSPEED,1) + "m/s".
     CHUTESSAFE ON.
     SAS OFF.
     SET RELEASED TO True.
@@ -119,7 +132,11 @@ UNTIL SHIP:altitude < 1000 {
     Telemetry().
     IF NOT RELEASED {
         SET MySteer TO SHIP:RETROGRADE.
-        LOCK STEERING TO MySteer.
+        IF SAS {
+            UNLOCK STEERING.
+        } ELSE {
+            LOCK STEERING TO MySteer.
+        }
     }
     WAIT 0.1.
 }

@@ -1,23 +1,50 @@
 // orbit/gravityturn.ks
+DECLARE PARAMETER AZIMUTH IS 90,
+                    TILTED IS 80,
+                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 2, 50000),
+                    CIRCULATE IS False,
+                    TARGET_PERIAPSIS IS 0,
+                    TOURIST IS False.
 //
-// Launch with a controlled gravity turn into orbit (100km Ap)
+// Launch with a controlled gravity turn into orbit
 //
-// At end of this, even though Periapsis might still be under horizon, 
-// maneuvernodes.ks can activate from here, and controlled start planned maneuvers
+// RUN "0:orbit/gravityturn" (90, 80, 140000, False, 77000)
+// Where 90 is Azimuth from launchpad
+// 80 is tilt to start gravitytyrb (90 is streight up)
+// 140000 si desired Apoapsis in meters
+// False for not circulating, True for circulating (this value will override Periapsis)
+// 77000 is desired Periapsis in meters
+// If last option TOURIST is set to True, script will abort as soon as orbit is achieved.
 CLEARSCREEN.
 
-SET INC TO 0.
 SET PITCHUP TO 90.
-//SET TILTED TO 85.
-SET TILTED TO 82.5.
-//SET TILTED TO 80.
-
+IF CIRCULATE {
+    SET SAFE_PERIAPSIS TO TARGET_APOAPSIS.
+} ELSE IF TARGET_PERIAPSIS > 500 {
+    SET SAFE_PERIAPSIS TO TARGET_PERIAPSIS.
+} ELSE IF BODY:ATM:HEIGHT > 500 {
+    SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.1.
+} ELSE { // The following step only for bodies without atmosphere
+    SET SAFE_ALTITUDES TO lexicon(
+        "Mun", 7000
+    ).
+    IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
+        SET SAFE_PERIAPSIS TO SAFE_ALTITUDES[BODY:NAME].
+    } ELSE {
+        SET SAFE_PERIAPSIS TO 50000.
+    }
+    // Identify different bodies and determine safe altitude based on topography.
+}
+IF SAFE_PERIAPSIS < (BODY:ATM:HEIGHT * 1.01) { //Periapsis must be set 1% over atmosphere, if lower default to 10% over
+    SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.1.
+}
 // Hardcoded minimum tank level (in units) to be considered empty.
 SET EMPTY TO 0.03.
 
 SET MyStatus TO "Preparing Lanuche Sequence".
 SET MyAcceleration TO 0.
 SET MyThrottle TO 0.
+SET forceSAS TO False.
 
 DECLARE FUNCTION Telemetry {
     PRINT MyStatus + "                             " AT(0,0).
@@ -38,16 +65,16 @@ Telemetry().
 
 WAIT 0.1.
 PRINT "Gravity Turn Sequence is Initiated!".
+PRINT "Departure Heading: " + AZIMUTH.
+PRINT "Gravity Tilt:      " + TILTED.
+PRINT "Target Apoapsis:   " + TARGET_APOAPSIS.
+IF NOT CIRCULATE {
+    PRINT "Target Periapsis:    " + SAFE_PERIAPSIS.
+}
 Telemetry().
-
-//SET g TO body:mu / ship:body:position:mag^2.
-//SET TWR TO (Ship:Mass * g) / Ship:possiblethrust.
 
 SET MaxQ TO 18000. // Figure out formula
 SET Margin TO 180. // Height margin of MaxQ
-
-//PRINT "TWR = "+TWR.
-PRINT "MaxQ = "+maxQ.
 
 DECLARE FUNCTION getLocalG {
     RETURN SHIP:BODY:mu / SHIP:BODY:POSITION:MAG ^ 2.
@@ -55,7 +82,8 @@ DECLARE FUNCTION getLocalG {
 DECLARE FUNCTION getTWR {
     // if SHIP:AVAILABLETHRUST is invalid, return 0.
     IF SHIP:availablethrust = 0 { RETURN 0. }
-    RETURN SHIP:MASS * getLocalG() / Ship:AVAILABLETHRUST.
+//    RETURN SHIP:MASS * getLocalG() / Ship:AVAILABLETHRUST.
+    RETURN  Ship:AVAILABLETHRUST / ( SHIP:MASS * getLocalG() ).
 }
 DECLARE FUNCTION getPitch {
     RETURN VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:FOREVECTOR).
@@ -67,7 +95,7 @@ DECLARE FUNCTION getAzi {
 DECLARE FUNCTION CalcAzi {
     DECLARE parameter i.
 
-    SET val TO i + 90.
+    SET val TO i + 0.
     IF val > 360 {
         RETURN val - 360.
     }
@@ -75,8 +103,8 @@ DECLARE FUNCTION CalcAzi {
 }.
 DECLARE FUNCTION readyToPrograde {
     SET Deviation TO 0.1.
-    SET ForceHeight TO MaxQ + (Margin * 2).
-    IF STAGE:SOLIDFUEL > 10 { RETURN False. } // Force solid busters to go streight up
+    SET ForceHeight TO MaxQ * 1.2.
+    IF STAGE:SOLIDFUEL > EMPTY { RETURN False. } // Force solid busters to go streight up
 
     IF SHIP:altitude > ForceHeight { 
         PRINT "ALTITUDE OVERRIDE FORCE PROGRADE!!!".
@@ -86,20 +114,70 @@ DECLARE FUNCTION readyToPrograde {
     PRINT "READY TO PROGRADE".
     RETURN True.
 }
+SET hasTermometer TO False.
+SET hasBarometer TO False.
+LIST SENSORS IN SENSELIST.
+FOR S IN SENSELIST {
+    IF S:TYPE = "TEMP" {
+        SET hasTermometer TO True.
+    }
+    IF S:TYPE = "PRES" {
+        SET hasBarometer TO True.
+    }
+}
+DECLARE FUNCTION getMACH {
+    IF NOT hasTermometer RETURN False.
+    IF NOT hasBarometer RETURN False.
+    IF SHIP:SENSORS:TEMP > 0 AND SHIP:SENSORS:PRES > 0 {
+        SET universalGasConstant TO 8.314. //  J/mol K
+        SET adiabaticConstant TO 1.4. // Constant
+        SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
+        SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
+        RETURN (SHIP:airspeed / soundSpeed).
+    } ELSE RETURN False.
+}
+DECLARE FUNCTION testStage {
+    IF STAGE:SOLIDFUEL < EMPTY AND STAGE:LIQUIDFUEL < EMPTY {
+        LOCK THROTTLE TO 0.015. // Make sure a minimum of thrust when staging
+        WAIT 0.5.
+        STAGE.
+        WAIT 2.
+        LOCK THROTTLE TO MyThrottle.
+    }
+}
+DECLARE FUNCTION setSteering {
+    IF SAS {
+        UNLOCK STEERING.
+    } ELSE {
+        LOCK STEERING TO MySteer.
+    }
+    LOCK THROTTLE TO MyThrottle.
+}
+DECLARE FUNCTION setFacing {
+    SET SASMODE TO "STABILITYASSIST".
+    SET MySteer TO SHIP:FACING.
+}
+DECLARE FUNCTION setPrograde {
+    SET SASMODE TO "PROGRADE".
+    SET MySteer TO SHIP:PROGRADE.
+}
+DECLARE FUNCTION setRetrograde {
+    SET SASMODE TO "RETROGRADE".
+    SET MySteer TO SHIP:RETROGRADE.
+}
 
 
-SAS OFF.
+//SAS OFF.
 SET MyThrottle TO 1.0.
 LOCK THROTTLE TO MyThrottle.
-SET MySteer TO HEADING(CalcAzi(INC),PITCHUP).
-
+setFacing().
+SET MySteer TO HEADING(CalcAzi(AZIMUTH),PITCHUP).
 SET MyStatus TO "COUNTDOWN INITIATED!".
 Telemetry().
 RUN "0:lib/countdown".
-
 PRINT "Ignition!".
 SET MyThrottle TO 1.0.
-LOCK THROTTLE TO MyThrottle.
+setSteering().
 STAGE.
 
 //PRINT "TWR on Ignition: " + ROUND(getTWR(),3).
@@ -111,128 +189,107 @@ UNTIL SHIP:verticalspeed > 0 {
 }
 SET MyStatus TO "Lift Off".
 PRINT "We have Lift off!".
-//PRINT "TWR at Liftoff: " + ROUND(getTWR(),3).
-IF SAS {
-    UNLOCK STEERING.
-} ELSE {
-    LOCK STEERING TO MySteer.
-}
 SET MyThrottle TO 1.0.
-LOCK THROTTLE TO MyThrottle.
+setSteering().
 UNTIL SHIP:verticalspeed > 100 {
     Telemetry().
     WAIT 0.01.
 }
 SET MyStatus TO "Craft Tilted to Initiate Turn".
 PRINT "Starting Gravity Turn".
-//PRINT "TWR at Start of Gravity Turn: " + ROUND(getTWR(),3).
-SET MySteer TO HEADING(CalcAzi(INC),TILTED).
 IF SAS {
-    UNLOCK STEERING.
-} ELSE {
-    LOCK STEERING TO MySteer.
+    SET forceSAS TO True.
+    SAS OFF.
 }
-SET MyThrottle TO 1.0.
-LOCK THROTTLE TO MyThrottle.
+SET MySteer TO HEADING(CalcAzi(AZIMUTH),TILTED).
+setSteering().
 Telemetry().
 WAIT 5. // The next step MUST be delayed
 // Find angle between FACING:FOREVECTOR and PROGRADE
+IF forceSAS {
+    SAS ON.
+}
 UNTIL readyToPrograde() {
     Telemetry().
+    setSteering().
     WAIT 0.1.
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
-    }
 }
-//UNLOCK STEERING.
 WAIT 0.1.
 Telemetry().
-//SAS ON.
+setPrograde().
+setSteering().
 WAIT 0.1.
 Telemetry().
-SET SASMODE TO "PROGRADE".
-SET MySteer TO SHIP:PROGRADE.
-IF SAS {
-    UNLOCK STEERING.
-} ELSE {
-    LOCK STEERING TO MySteer.
-}
+WAIT 0.1.
+Telemetry().
+setPrograde().
+setSteering().
 SET MyStatus TO "Prograde Burn".
 PRINT "Changing to SAS PROGRADE Mode. (Ending Initial lift)".
-PRINT "TWR at start of PROGRADE: " + ROUND(getTWR(),3).
-//SET MyThrottle TO THROTTLE.
 Telemetry().
 
 // Adjust vessel thrust to 1G
 
 SET PITCHLOCK TO False.
 
-//PRINT "Throttle currently set to "+ROUND(MyThrottle*100,1)+"%".
-UNTIL SHIP:apoapsis > MAX(BODY:ATM:HEIGHT * 2, 50000) { // AP to minimum 2 athmosphere height, or 50.000m
+UNTIL SHIP:apoapsis > TARGET_APOAPSIS OR SHIP:altitude > BODY:ATM:HEIGHT {
     SET MyThrottle TO MAX(0.001, MIN(MyThrottle, 1)). // Keep minimum burn all the way
-    LOCK THROTTLE TO MyThrottle.
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
-    }
+    setSteering().
     Telemetry().
-
-    IF STAGE:SOLIDFUEL < EMPTY AND STAGE:LIQUIDFUEL < EMPTY {
-        LOCK THROTTLE TO 0.015. // Make sure a minimum of thrust when staging
-        WAIT 0.5.
-        STAGE.
-        WAIT 2.
-        LOCK THROTTLE TO MyThrottle.
-    }
+    testStage().
 
     // Before maxQ
     //
     // Keep Throttle on acceleration of 1G 300 m/s
-    IF SHIP:altitude < MaxQ {
-        IF SHIP:AIRSPEED > 300 AND ETA:apoapsis > 60 {
-            SET MyThrottle TO MAX(MyThrottle - 0.015, 0.25).
-            SET SASMODE TO "PROGRADE".
-            SET MySteer TO SHIP:PROGRADE.
+    IF getMACH() AND SHIP:altitude < (BODY:ATM:HEIGHT / 1.5) {
+//    IF getMACH() AND SHIP:altitude < (BODY:ATM:HEIGHT / 3.18) {
+        SET MyStatus TO "Preparing for MaxQ".
+        setPrograde().
+        // We can use MACH to avoid overburning at MaxQ
+        // keep MACH at 0.75 for ideal, never pass 0.8
+        // boost thrusters if under 0.7
+        IF getMACH() < 0.7 {
+            SET MyThrottle TO MyThrottle + 0.05.
+        } ELSE IF getMACH() > 0.8 {
+            SET MyThrottle TO MyThrottle - 0.1.
+        } ELSE IF getMACH() > 0.75 {
+            SET MyThrottle TO MyThrottle - 0.001.
         }
-        IF SHIP:AIRSPEED < 300 OR ETA:apoapsis < 58 {
-            SET MyThrottle TO MyThrottle + 0.015.
-            SET SASMODE TO "PROGRADE".
-            SET MySteer TO SHIP:PROGRADE.
-        }
+    } ELSE IF SHIP:ALTITUDE < MaxQ + Margin {
+        IF SHIP:altitude < MaxQ {
+            SET MyStatus TO "Before MaxQ".
+            IF SHIP:AIRSPEED > 300 AND ETA:apoapsis > 60 {
+                SET MyThrottle TO MAX(MyThrottle - 0.015, 0.25).
+                setPrograde().
+            }
+            IF SHIP:AIRSPEED < 300 OR ETA:apoapsis < 58 {
+                SET MyThrottle TO MyThrottle + 0.015.
+                setPrograde().
+            }
 //        IF getPitch > 20 {
-//            SET SASMODE TO "STABILITYASSIST".
-//            SET MySteer TO SHIP:FACING.
+//            setFacing().
 //        }
-    } ELSE IF SHIP:altitude < MaxQ + Margin {
+        } ELSE IF SHIP:altitude < MaxQ + Margin {
     // Approaching maxQ
     //
     // Reduce Throttle to TWR 1.01
-        SET MyThrottle TO MIN(MyThrottle,0.3).
-//        SET SASMODE TO "PROGRADE".
-//        SET MySteer TO SHIP:PROGRADE.
-        SET SASMODE TO "STABILITYASSIST".
-        SET MySteer TO SHIP:FACING.
-        SET MyStatus TO "In MaxQ ("+SASMODE+")".
+            SET MyThrottle TO MIN(MyThrottle,0.3).
+            setFacing().
+            SET MyStatus TO "In MaxQ ("+SASMODE+")".
+        }
     } ELSE IF SHIP:ALTITUDE < BODY:ATM:HEIGHT {
     // After maxQ
         SET MyStatus TO "After MaxQ ("+SASMODE+")".
         // Throttle up to 2G
         IF ETA:APOAPSIS < 45 {
-            SET SASMODE TO "STABILITYASSIST".
-            SET MySteer TO SHIP:FACING.
+            setFacing().
             SET MyThrottle TO MyThrottle + 0.015.
         }
         IF ETA:apoapsis < 60 {
             SET MyThrottle TO MyThrottle + 0.005.
         }
         IF ETA:APOAPSIS > 240 {
-            IF NOT PITCHLOCK {
-                SET SASMODE TO "PROGRADE".
-                SET MySteer TO SHIP:PROGRADE.
-            }
+            setPrograde().
             SET PITCHLOCK TO False.
             SET MyThrottle TO MAX(MyThrottle - 0.001, 0.015).
         }
@@ -241,20 +298,16 @@ UNTIL SHIP:apoapsis > MAX(BODY:ATM:HEIGHT * 2, 50000) { // AP to minimum 2 athmo
         }
         IF SHIP:altitude < BODY:ATM:height / 3 AND getPitch() > 30 {
             SET PITCHLOCK TO True.
-            SET SASMODE TO "STABILITYASSIST".
-            SET MySteer TO SHIP:FACING.
+            setFacing().
         } ELSE IF SHIP:altitude < BODY:ATM:height / 2 AND getPitch() > 45 {
             SET PITCHLOCK TO True.
-            SET SASMODE TO "STABILITYASSIST".
-            SET MySteer TO SHIP:FACING.
+            setFacing().
         } ELSE IF SHIP:altitude < BODY:ATM:height / 1.5 AND getPitch() > 60 {
             SET PITCHLOCK TO True.
-            SET SASMODE TO "STABILITYASSIST".
-            SET MySteer TO SHIP:FACING.
+            setFacing().
         } ELSE IF SHIP:altitude < BODY:ATM:height AND getPitch() > 80 {
             SET PITCHLOCK TO True.
-            SET SASMODE TO "STABILITYASSIST".
-            SET MySteer TO SHIP:FACING.
+            setFacing().
         }
     // Adjust throttle to maintain Apoapsis between 35 and 31 seconds ahead until athmosphere is breached
     } ELSE {
@@ -262,74 +315,147 @@ UNTIL SHIP:apoapsis > MAX(BODY:ATM:HEIGHT * 2, 50000) { // AP to minimum 2 athmo
         // ETA to Apoapsis will suddenly increase rapidly, so no point in forcing it to remain around
         // 30 seconds.
         SET MyStatus TO "Over Athmosphere, lets throttle up".
-        SET SASMODE TO "PROGRADE".
-        SET MySteer TO SHIP:PROGRADE.
+        setPrograde().
         SET MyThrottle TO MyThrottle + 0.005.
     }
     WAIT 0.1.
 }
+
+
 // Keep minimum burn on engines until outside athmosphere
 UNTIL SHIP:altitude > BODY:ATM:HEIGHT {
     SET MyStatus TO "In Athmosphere, continue minimum burn!".
-    SET SASMODE TO "PROGRADE".
-    SET MySteer TO SHIP:PROGRADE.
-    LOCK THROTTLE TO 0.01.
+    testStage().
+    setPrograde().
+    SET MyThrottle TO 0.001.
+    setSteering().
+    Telemetry().
+    WAIT 0.1.
+}
+UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (TARGET_PERIAPSIS * 0.95) {
+    SET MyStatus TO "Escaped Athmosphere, continue burn to reach target height".
+    testStage().
+    setPrograde().
+    IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
+        setFacing().
+    }
+    SET MyThrottle TO 1.
+    setSteering().
     Telemetry().
     WAIT 0.1.
 }
 // We have achieved desired minimum AP and escaped athmosphere
-SET MyThrottle TO 0.001.
-LOCK THROTTLE TO MyThrottle.
+SET MyThrottle TO 0.
+setSteering().
+//LOCK THROTTLE TO MyThrottle.
 PRINT "Desired Apoapsis achieved, preparing final burn for orbit.".
 Telemetry().
 WAIT 1.
 
 // Final attitude burn
-SET MyStatus TO "Final Attitude Burn".
-IF ETA:apoapsis < 500 {
-    UNTIL ETA:apoapsis < 75 { // seconds before Ap for final burn
-        Telemetry().
-        WAIT 0.1.
-        SET SASMODE TO "PROGRADE".
-        SET MySteer TO SHIP:PROGRADE.
-    }
-}
-PRINT "Initiating final burn!".
-SET MyStatus TO "Final Attitude Burn.".
-SET MyThrottle TO 1.0.
-SET SASMODE TO "PROGRADE".
-SET MySteer TO SHIP:PROGRADE.
-UNTIL SHIP:periapsis > MAX(BODY:ATM:HEIGHT * 1.1, 50000) {
+//SET MyStatus TO "Final Attitude Burn".
+//IF ETA:apoapsis < 500 {
+//    UNTIL ETA:apoapsis < 75 { // seconds before Ap for final burn
+//        Telemetry().
+//        WAIT 0.1.
+//        setPrograde().
+//        setSteering().
+//    }
+//}
+
+PRINT "Lifting Periapsis over athmosphere".
+SET MyStatus TO "Lifting Periapsis.".
+SAS ON.
+UNTIL SHIP:periapsis > BODY:ATM:HEIGHT {
     Telemetry().
-    IF STAGE:SOLIDFUEL < EMPTY AND STAGE:LIQUIDFUEL < EMPTY {
-        LOCK THROTTLE TO 0.015. // Make sure a minimum of thrust when staging
-        STAGE.
-        WAIT 5.
-        LOCK THROTTLE TO MyThrottle.
-        IF getTWR = 0 { STAGE. 
-            WAIT 5. }
-    }
-    IF ETA:apoapsis < 30 { SET MyThrottle TO MyThrottle + 0.1. }
-    IF ETA:apoapsis > 85 { SET MyThrottle TO MyThrottle - 0.01. }
-    IF ETA:apoapsis > 90 { SET MyThrottle TO MyThrottle - 0.04. }
-    IF ETA:apoapsis > 600 {
-        SET SASMODE TO "STABILITYASSIST".
-        SET MySteer TO SHIP:FACING.
-        SET MyThrottle TO 1.
+    setSteering().
+    IF SHIP:periapsis < SAFE_PERIAPSIS {
+        testStage().
+        IF ETA:apoapsis < 58 { SET MyThrottle TO MyThrottle + 0.1. }
+        IF ETA:apoapsis > 60 { SET MyThrottle TO MyThrottle - 0.01. }
+        IF ETA:apoapsis > 70 { SET MyThrottle TO MyThrottle - 0.04. }
+        IF ETA:apoapsis > 99 { SET MyThrottle TO 0. }
+        IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
+            setFacing().
+            SET MyThrottle TO 1.
+        } ELSE {
+            setPrograde().
+        }
+//        IF ETA:apoapsis < 3 { setFacing(). }
+        SET MyThrottle TO MIN(MAX(MyThrottle, 0), 1).
     } ELSE {
-        SET SASMODE TO "PROGRADE".
-        SET MySteer TO SHIP:PROGRADE.
-    }
-    SET MyThrottle TO MIN(MAX(MyThrottle, 0.015), 1).
-    LOCK THROTTLE TO MyThrottle.
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
+        SET MyThrottle TO 0.
     }
     WAIT 0.1.
 }
-
+WAIT 1.
+Telemetry().
+IF TOURIST {
+    PRINT "ORBIT ACHIEVED, RETURNING TO SURFACE.".
+    Telemetry().
+    SAS OFF.
+    LOCK THROTTLE TO 0.
+    SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
+    SET SHIP:CONTROL:NEUTRALIZE TO TRUE.
+    UNLOCK STEERING.
+    UNLOCK THROTTLE.
+} ELSE {
+    PRINT "Initiating final burn!".
+    SET MyStatus TO "Final Attitude Burn.".
+    SET MyThrottle TO 0.
+    SET FinalOrbit TO False.
+    UNTIL FinalOrbit {
+        Telemetry().
+        IF NOBURN { SET MyThrottle TO 0. }
+        setSteering().
+        SET NOBURN TO False.
+        IF SHIP:apoapsis > (TARGET_APOAPSIS * 0.99) AND SHIP:apoapsis < (TARGET_APOAPSIS * 1.01) AND SHIP:periapsis > (TARGET_PERIAPSIS * 0.99) AND SHIP:periapsis < (TARGET_PERIAPSIS * 1.01) {
+            SET FinalOrbit TO True.
+        }
+        SET LAPTIME TO SHIP:ORBIT:PERIOD.
+        IF ETA:apoapsis < (LAPTIME / 4) OR ETA:periapsis > (LAPTIME / 4) {
+        // Apoapsis Hemisphere
+            IF SHIP:periapsis < (TARGET_PERIAPSIS * 0.99) {
+                // Lift Periapsis
+                setPrograde().
+            } ELSE IF SHIP:periapsis > (TARGET_PERIAPSIS * 1.01) {
+                // Lower Periapsis
+                setRetrograde().
+            } ELSE { SET NOBURN TO True. }
+            SET BURNTIME TO 60.
+            SET BURNFORCE TO 0.001.
+            IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
+                SET MyThrottle TO BURNFORCE.
+            } ELSE {
+                SET MyThrottle TO 0.
+            }
+        } ELSE {
+        // Periapsis Hemisphere
+            IF SHIP:apoapsis < (TARGET_APOAPSIS * 0.99) {
+                // Lift Apoapsis
+                setPrograde().
+            } ELSE IF SHIP:apoapsis > (TARGET_APOAPSIS * 1.01) {
+                // Lower Apoapsis
+                setRetrograde().
+            } ELSE { SET NOBURN TO True. }
+            SET BURNTIME TO 60.
+            SET BURNFORCE TO 0.001.
+            IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
+                IF SHIP:periapsis > (BODY:ATM:HEIGHT * 1.01) AND SASMODE = "RETROGRADE" {
+                    SET MyThrottle TO BURNFORCE.
+                } ELSE {
+                    SET MyThrottle TO 0.
+                }
+            } ELSE {
+                SET MyThrottle TO 0.
+            }
+        }
+        // End
+        WAIT 0.1.
+    }
+}
+WAIT 1.
+Telemetry().
 SAS OFF.
 LOCK THROTTLE TO 0.
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.

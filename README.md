@@ -50,10 +50,14 @@ All scripts will be tested, and adjustments might occure rapidly.
 
     * Gravity Turn - does gravity turn to get effectively to orbit while saving fuel.
 
+* Landing
+
+    * Safe descent (athmosphere break and freefall with safe parachute deployment)
+
 # System Details
 
 Scripts are tested and should work with following conditions:
 
-* KSP 1.11.1 (Windows10)
+* KSP 1.12.1 (Windows10)
 
 * kOS Scriptable Autopilot System 1.3.2.0

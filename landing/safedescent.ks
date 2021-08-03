@@ -4,8 +4,9 @@
 //
 // At end of this, even though Periapsis might still be under horizon, 
 // maneuvernodes.ks can activate from here, and controlled start planned maneuvers
+WAIT 1.
 CLEARSCREEN.
-
+WAIT 1.
 SET MyStatus TO "Preparing Safe Descent".
 SET MyThrottle TO 0.
 
@@ -22,7 +23,7 @@ PRINT "Telemetry RX".
 PRINT "".
 PRINT "Preparing Safe Descent".
 
-LOCK THROTTLE TO 0.
+LOCK THROTTLE TO MyThrottle.
 
 WAIT 1.
 Telemetry().
@@ -48,7 +49,9 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.95 {
     SET MySteer TO SHIP:RETROGRADE.
     IF ETA:apoapsis < 30 {
         SET MyStatus TO "Preparing athmospheric DIP". 
-        SET MyThrottle TO 0.1.
+        SET MyThrottle TO 0.05.
+    } ELSE IF SHIP:ALTITUDE < BODY:ATM:HEIGHT {
+        SET MyThrottle TO 0.05.
     } ELSE {
         SET MyThrottle TO 0.
     }
@@ -70,9 +73,16 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height
     SET MyStatus TO "Flattening Orbit".
     SET MySteer TO SHIP:RETROGRADE.
     SET SASMODE TO "RETROGRADE".
+//    SET MyThrottle TO 0.
     IF SHIP:altitude < BODY:ATM:height {
-        SET maxThrust TO ROUND( MAX( MIN(101 - (ETA:periapsis), 100) / 100, 0), 4).
-        SET MyThrottle TO MAX(maxThrust, 0.001).
+        IF ETA:periapsis < 15 {
+            SET MyThrottle TO ROUND( MAX( (( 110 - (ETA:periapsis * 12)) / 100), 0), 4).
+//            hudtext(MyThrottle, 1, 4, 26, RED, False).
+//            SET MyThrottle TO 0.75.
+            SET MyThrottle TO MIN(MAX(MyThrottle, 0.05), 1).
+        } ELSE {
+            SET MyThrottle TO 0.001.
+        }
     } else {
         SET MyThrottle TO 0.
     }
@@ -85,7 +95,11 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height
     Telemetry().
     WAIT 0.1.
 }
-PRINT"Apoapsis inside atmsophere".
+IF SHIP:apoapsis < BODY:ATM:HEIGHT {
+    PRINT "Apoapsis inside atmsophere".
+} ELSE {
+    PRINT "PERIAPSIS VERY LOW".
+}
 
 SET MyStatus TO "Final Breakdown".
 Telemetry().
@@ -128,7 +142,7 @@ WHEN (NOT CHUTESSAFE) THEN {
 Telemetry().
 
 // Make sure program doesn't end until parachutes are deployed
-UNTIL SHIP:altitude < 1000 {
+UNTIL SHIP:airspeed < 150 {
     Telemetry().
     IF NOT RELEASED {
         SET MySteer TO SHIP:RETROGRADE.

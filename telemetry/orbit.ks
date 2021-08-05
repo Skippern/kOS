@@ -19,6 +19,41 @@ DECLARE FUNCTION getTWR {
 //    RETURN (SHIP:MASS * getLocalG() ) / Ship:AVAILABLETHRUST.
     RETURN  SHIP:AVAILABLETHRUST / (SHIP:MASS * getLocalG() ).
 }
+DECLARE FUNCTION printTime {
+    PARAMETER myTime.
+    PARAMETER Precission IS 1.
+    SET tmp TO "".
+
+    if myTime > 3599 {
+        SET i TO FLOOR(myTime/3600).
+        SET myTime TO myTime - (i * 3600).
+        if i > 9 {
+            SET tmp TO i + "hr ".
+        } else {
+            SET tmp TO "0" + i + "hr ".
+        }
+    } ELSE {
+        SET tmp TO "00hr ".
+    }
+    if myTime > 59 {
+        SET i TO FLOOR(myTime/60).
+        SET myTime TO myTime - (i * 60).
+        if i > 9 {
+            SET tmp TO tmp + i + "min ".
+        } else {
+            SET tmp TO tmp + "0" + i + "min ".
+        } 
+    } ELSE {
+        SET tmp TO tmp + "00min ".
+    }
+    if myTime > 9 {
+        SET tmp to tmp + ROUND(myTime,Precission) +"sec".
+    } else {
+        SET tmp TO tmp + "0" + ROUND(myTime,Precission) +"sec".
+    }
+    RETURN tmp.
+}
+
 
 SET hasTermometer TO False.
 SET hasBarometer TO False.
@@ -31,6 +66,12 @@ FOR S IN SENSELIST {
     }
     IF S:TYPE = "PRES" {
         SET hasBarometer TO True.
+    }
+    IF S:TYPE = "ACC" {
+        SET hasAccelerometer TO True.
+    }
+    IF S:TYPE = "GRAV" {
+        SET hasGravometer TO True.
     }
 }
 
@@ -99,10 +140,20 @@ UNTIL false {
     //Sensors
     SET LINENUM TO LINENUM + 1.
     SET LINENUM TO LINENUM + 1.
-    PRINT "Light Exposure: " + ROUND(SHIP:SENSORS:LIGHT,1) + "Lux?           " AT(0,LINENUM).
+    PRINT "Light Exposure: " + ROUND(SHIP:SENSORS:LIGHT * 100,3) + " klx           " AT(0,LINENUM).
+    // Was checking up, since the KSP Wiki say SHIP:SENSORS:LIGHT is 1 at Kerbin Orbit,
+    // and Illimunence (light exposure per square meter) in direct sunlight is 100 klx, 
+    // than sensor * 100 should give a somewhat valid result in klx (1 lx = 1 lm/m2)
+    // some numbers:
+    // Direct sunlight: 32 - 100 klx
+    // Normal Daylight: 10 - 25 klx
+    // Overcast day: 1 klx
+    // Fullmoon: 0.05 - 0.3 lx
+    // Moonless clear night: 0.002 lx
+    // Moonless overcast: 0.0001 lx
     SET LINENUM TO LINENUM + 1.
     IF hasTermometer {
-        PRINT "Temp: " + ROUND(SHIP:SENSORS:TEMP,1) + "K / "+ROUND(SHIP:SENSORS:TEMP - 273.15, 1) +"C             " AT(0,LINENUM).
+        PRINT "Temp: " + ROUND(SHIP:SENSORS:TEMP,2) + "K / "+ROUND(SHIP:SENSORS:TEMP - 273.15, 2) +"C             " AT(0,LINENUM).
     } ELSE {
         PRINT "Temp: NaN                                                 " AT(0,LINENUM). 
     }
@@ -115,10 +166,9 @@ UNTIL false {
         }
     } ELSE { SET tmp TO "NaN". }
     PRINT "Pressure: " + tmp + "                        " AT(0,LINENUM).
-    // The following sensors need some code to verify that sensor is present, and to gather the correct value from them.
     SET LINENUM TO LINENUM + 1.
     IF hasAccelerometer {
-        PRINT "Acceleration: " + ROUND(SHIP:SENSORS:ACC:MAG,2) + "m/s²                  " AT(0,LINENUM).
+        PRINT "Acceleration: " + ROUND(SHIP:SENSORS:ACC:MAG,2) + "G                  " AT(0,LINENUM).
     } ELSE {
         local dt IS TIME:SECONDS - myLastTime.
         if dt > 0 {
@@ -126,40 +176,20 @@ UNTIL false {
         }
         SET myLastVel TO SHIP:VELOCITY:ORBIT.
         SET myLastTime TO TIME:SECONDS.
-        PRINT "Acceleration: "+ROUND(MyACC:MAG,2)+"m/s² (calculated)            " AT(0,LINENUM).
+        PRINT "Acceleration: "+ROUND(MyACC:MAG/9.80718,2)+"G (calculated)            " AT(0,LINENUM).
     }
     SET LINENUM TO LINENUM + 1.
     IF hasGravometer {
-        PRINT "Gravity: "+ SHIP:SENSORS:GRAV:MAG +"m/s²                        " AT(0,LINENUM).
+        PRINT "Gravity: "+ ROUND(SHIP:SENSORS:GRAV:MAG,4) +"m/s²                        " AT(0,LINENUM).
     } ELSE {
-        PRINT "Gravity: NaN                  " AT(0,LINENUM).
+        PRINT "Gravity: "+ ROUND(getLocalG(), 4) +" (calculated)                  " AT(0,LINENUM).
     }
 
     SET LINENUM TO LINENUM + 1.
     SET LINENUM TO LINENUM + 1.
-    IF ETA:apoapsis < 60 {
-        SET APO_ETA TO ROUND(ETA:apoapsis,1).
-    } ELSE {
-        SET tmp to ROUND(ETA:apoapsis,0).
-        SET hr to FLOOR(tmp / 3600).
-        SET tmp to tmp - (hr * 3600). // removing hours
-        SET min to FLOOR(tmp / 60).
-        SET tmp to tmp - (min * 60). // removing minutes
-        SET APO_ETA TO hr+"h "+min+"m "+tmp.
-    }
-    PRINT "Apoapsis: " + ROUND(SHIP:apoapsis,1) + "m     ETA: " + APO_ETA +"s      " AT(0,LINENUM).
+    PRINT "Apoapsis: " + ROUND(SHIP:apoapsis,1) + "m     ETA: " + printTime(ETA:apoapsis) +"      " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    IF ETA:periapsis < 60 {
-        SET PERI_ETA TO ROUND(ETA:periapsis,1).
-    } ELSE {
-        SET tmp to ROUND(ETA:periapsis,0).
-        SET hr to FLOOR(tmp / 3600).
-        SET tmp to tmp - (hr * 3600). // removing hours
-        SET min to FLOOR(tmp / 60).
-        SET tmp to tmp - (min * 60). // removing minutes
-        SET PERI_ETA TO hr+"h "+min+"m "+tmp.
-    }
-    PRINT "Periapsis: " + ROUND(SHIP:periapsis,1) + "m     ETA: " + PERI_ETA +"s      " AT(0,LINENUM).
+    PRINT "Periapsis: " + ROUND(SHIP:periapsis,1) + "m     ETA: " + printTime(ETA:periapsis) +"      " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     PRINT "Altitude: " + ROUND(SHIP:altitude,1) + "m / " + ROUND(SHIP:verticalSpeed,1) + "m/s (vert)          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
@@ -177,7 +207,8 @@ UNTIL false {
         SET adiabaticConstant TO 1.4. // Constant
         SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
         SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
-        SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M c=("+ROUND(soundSpeed,1)+"m/s)".
+//        SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M c=("+ROUND(soundSpeed,1)+"m/s)".
+        SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M".
     }
     PRINT "Velocity: " + ROUND(SHIP:airspeed,1) + "m/s (Air) "+mach+"                                   " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
@@ -190,26 +221,15 @@ UNTIL false {
     IF SHIP:apoapsis < 0 {
         SET LAPTIME TO "Infinity".
     } ELSE {
-        SET tmp to ROUND(SHIP:ORBIT:PERIOD,1).
-        SET hr to FLOOR(tmp / 3600).
-        SET tmp to tmp - (hr * 3600). // removing hours
-        SET min to FLOOR(tmp / 60).
-        SET tmp to tmp - (min * 60). // removing minutes
-        SET LAPTIME TO hr+"h "+min+"m "+ROUND(tmp,1).
+        SET LAPTIME TO printTime(SHIP:orbit:period).
     }
-    PRINT "Orbital Period: " + LAPTIME + "s       " AT(0,LINENUM).
+    PRINT "Orbital Period: " + LAPTIME + "       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     SET NodeEta TO ROUND(ETA:NEXTNODE,1).
     IF SHIP:apoapsis < 0 { SET NodeEta TO "N/A". // Yikes!
     } ELSE IF NodeEta > SHIP:ORBIT:period * 10 { SET NodeEta TO "N/A". // If you cannot reach node in 10 laps, than it is unreachable 
-    } ELSE IF NodeEta < 60 { SET NodeEta TO NodeEta + "s". 
     } ELSE {
-        SET tmp to NodeEta.
-        SET hr to FLOOR(tmp / 3600).
-        SET tmp to tmp - (hr * 3600). // removing hours
-        SET min to FLOOR(tmp / 60).
-        SET tmp to tmp - (min * 60). // removing minutes
-        SET NodeEta TO hr+"h "+min+"m "+ROUND(tmp,0)+"s".
+        SET NodeEta TO printTime(NodeEta).
     }
     PRINT "Next Maneuver Node in " + NodeEta + "       " AT(0,LINENUM).
 

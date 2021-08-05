@@ -211,6 +211,7 @@ IF forceSAS {
 }
 UNTIL readyToPrograde() {
     Telemetry().
+    testStage().
     setSteering().
     WAIT 0.1.
 }
@@ -332,8 +333,8 @@ UNTIL SHIP:altitude > BODY:ATM:HEIGHT {
     Telemetry().
     WAIT 0.1.
 }
-UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (TARGET_PERIAPSIS * 0.95) {
-    SET MyStatus TO "Escaped Athmosphere, continue burn to reach target height".
+UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (TARGET_PERIAPSIS * 0.95) OR SHIP:apoapsis > BODY:radius {
+    SET MyStatus TO "Escaped Athmosphere, continue burn to reach target apoapsis".
     testStage().
     setPrograde().
     IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
@@ -351,17 +352,6 @@ setSteering().
 PRINT "Desired Apoapsis achieved, preparing final burn for orbit.".
 Telemetry().
 WAIT 1.
-
-// Final attitude burn
-//SET MyStatus TO "Final Attitude Burn".
-//IF ETA:apoapsis < 500 {
-//    UNTIL ETA:apoapsis < 75 { // seconds before Ap for final burn
-//        Telemetry().
-//        WAIT 0.1.
-//        setPrograde().
-//        setSteering().
-//    }
-//}
 
 PRINT "Lifting Periapsis over athmosphere".
 SET MyStatus TO "Lifting Periapsis.".
@@ -389,6 +379,7 @@ UNTIL SHIP:periapsis > BODY:ATM:HEIGHT {
     WAIT 0.1.
 }
 WAIT 1.
+SET NOBURN TO False.
 Telemetry().
 IF TOURIST {
     PRINT "ORBIT ACHIEVED, RETURNING TO SURFACE.".
@@ -400,59 +391,10 @@ IF TOURIST {
     UNLOCK STEERING.
     UNLOCK THROTTLE.
 } ELSE {
-    PRINT "Initiating final burn!".
-    SET MyStatus TO "Final Attitude Burn.".
-    SET MyThrottle TO 0.
-    SET FinalOrbit TO False.
-    UNTIL FinalOrbit {
-        Telemetry().
-        IF NOBURN { SET MyThrottle TO 0. }
-        setSteering().
-        SET NOBURN TO False.
-        IF SHIP:apoapsis > (TARGET_APOAPSIS * 0.99) AND SHIP:apoapsis < (TARGET_APOAPSIS * 1.01) AND SHIP:periapsis > (TARGET_PERIAPSIS * 0.99) AND SHIP:periapsis < (TARGET_PERIAPSIS * 1.01) {
-            SET FinalOrbit TO True.
-        }
-        SET LAPTIME TO SHIP:ORBIT:PERIOD.
-        IF ETA:apoapsis < (LAPTIME / 4) OR ETA:periapsis > (LAPTIME / 4) {
-        // Apoapsis Hemisphere
-            IF SHIP:periapsis < (TARGET_PERIAPSIS * 0.99) {
-                // Lift Periapsis
-                setPrograde().
-            } ELSE IF SHIP:periapsis > (TARGET_PERIAPSIS * 1.01) {
-                // Lower Periapsis
-                setRetrograde().
-            } ELSE { SET NOBURN TO True. }
-            SET BURNTIME TO 60.
-            SET BURNFORCE TO 0.001.
-            IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
-                SET MyThrottle TO BURNFORCE.
-            } ELSE {
-                SET MyThrottle TO 0.
-            }
-        } ELSE {
-        // Periapsis Hemisphere
-            IF SHIP:apoapsis < (TARGET_APOAPSIS * 0.99) {
-                // Lift Apoapsis
-                setPrograde().
-            } ELSE IF SHIP:apoapsis > (TARGET_APOAPSIS * 1.01) {
-                // Lower Apoapsis
-                setRetrograde().
-            } ELSE { SET NOBURN TO True. }
-            SET BURNTIME TO 60.
-            SET BURNFORCE TO 0.001.
-            IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
-                IF SHIP:periapsis > (BODY:ATM:HEIGHT * 1.01) AND SASMODE = "RETROGRADE" {
-                    SET MyThrottle TO BURNFORCE.
-                } ELSE {
-                    SET MyThrottle TO 0.
-                }
-            } ELSE {
-                SET MyThrottle TO 0.
-            }
-        }
-        // End
-        WAIT 0.1.
-    }
+    PRINT "Initiating final adjustments!".
+    SET MyStatus TO "Setting Final Orbit.".
+    WAIT 0.1.
+    RUN "0:orbit/setOrbit" (TARGET_APOAPSIS, TARGET_PERIAPSIS).
 }
 WAIT 1.
 Telemetry().

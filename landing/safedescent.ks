@@ -67,6 +67,7 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.95 {
 LOCK THROTTLE TO 0.
 
 PRINT "Periapsis inside atmosphere".
+PANELS OFF. // Foldable solar panels should be stowed
 
 // Get Apopasis down
 UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height {

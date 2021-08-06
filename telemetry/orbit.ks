@@ -10,24 +10,8 @@ SET XENOMAX TO MAX(ROUND(SHIP:XENONGAS,0),0.001).
 SET AIRMAX TO MAX(ROUND(SHIP:INTAKEAIR,0),0.001).
 SET MAXORE TO MAX(ROUND(SHIP:ORE,0),0.001).
 
-DECLARE FUNCTION getLocalG {
-    RETURN SHIP:BODY:mu / SHIP:BODY:POSITION:MAG ^ 2.
-}
-DECLARE FUNCTION getTWR {
-    IF SHIP:availablethrust = 0 { RETURN 0. }
-
-    RETURN  SHIP:AVAILABLETHRUST / (SHIP:MASS * getLocalG() ).
-}
-DECLARE FUNCTION printTime {
-    PARAMETER myTime.
-    PARAMETER Precission IS 1.
-
-    SET fract TO ROUND( ROUND(myTime,Precission) - FLOOR(myTime) , Precission).
-    SET myTime TO TIMESTAMP(myTime).
-
-    RETURN (myTime:year - 1) + "y " + (myTime:day - 1) + "d " + myTime:hour + "h " + myTime:minute + "m " + (myTime:second + fract) + "s". 
-}
-
+RUN ONCE "0:lib/utils/std".
+RUN ONCE "0:/lib/science/orbitals".
 
 SET hasTermometer TO False.
 SET hasBarometer TO False.
@@ -181,7 +165,7 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     PRINT "Altitude: " + ROUND(SHIP:altitude,1) + "m / " + ROUND(SHIP:verticalSpeed,1) + "m/s (vert)          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    IF SHIP:ALTITUDE < BODY:ATM:HEIGHT OR SHIP:ALTITUDE < 25000 {
+    IF (BODY:ATM:HEIGHT > 5000 AND SHIP:ALTITUDE < BODY:ATM:HEIGHT) OR SHIP:ALTITUDE < (SAFE_ALTITUDES[SHIP:BODY:NAME] * 1.5) {
         PRINT "Height over ground: " + ROUND(SHIP:BOUNDS:BOTTOMALTRADAR,1) + "m                                    " AT(0,LINENUM).
     } ELSE {
         PRINT "Height over ground: NaN                                                   " AT(0,LINENUM).
@@ -196,7 +180,6 @@ UNTIL false {
             SET adiabaticConstant TO 1.4. // Constant
             SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
             SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
-//            SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M c=("+ROUND(soundSpeed,1)+"m/s)".
             SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M".
         }
     }
@@ -206,7 +189,14 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     PRINT "Eccentricity: " + ROUND(SHIP:ORBIT:eccentricity,5) + "       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-
+    PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
+    PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°            " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
+    PRINT "True Anomaly: " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
+    PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
     // Need to capture "Infinitys" for when orbit changes between bodies, or drifting between orbits.
     IF SHIP:apoapsis < 0 {
         SET LAPTIME TO "Infinity".
@@ -217,12 +207,11 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     SET NodeEta TO ROUND(ETA:NEXTNODE,1).
     IF SHIP:apoapsis < 0 { SET NodeEta TO "N/A". // Yikes!
-    } ELSE IF NodeEta > SHIP:ORBIT:period * 10 { SET NodeEta TO "N/A". // If you cannot reach node in 10 laps, than it is unreachable 
+    } ELSE IF NodeEta > SHIP:ORBIT:period { SET NodeEta TO "N/A". // If you cannot reach node this laps, than it is unreachable 
     } ELSE {
         SET NodeEta TO printTime(NodeEta).
     }
     PRINT "Next Maneuver Node in " + NodeEta + "       " AT(0,LINENUM).
-
     //Resources
     SET LINENUM TO LINENUM + 1.
     IF SHIP:ELECTRICCHARGE > MAXCHARGE {

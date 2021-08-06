@@ -6,39 +6,24 @@
 // maneuvernodes.ks can activate from here, and controlled start planned maneuvers
 WAIT 1.
 CLEARSCREEN.
-SET DEBUG TO False.
+
+RUN ONCE "0:/lib/utils/std".
+
 WAIT 1.
 SET MyStatus TO "Preparing Safe Descent".
 SET MyThrottle TO 0.
 
-IF DEBUG {
-    DECLARE FUNCTION Telemetry {
-        PRINT MyStatus + "                             " AT(0,0).
-        PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%     " AT(0,1).
-        IF SAS { SET SASStatus TO "ON  / ". } ELSE { SET SASStatus TO "OFF / ". }
-        PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,2).
-    }
-    PRINT "Telemetry RX".
-    PRINT "Telemetry RX".
-    PRINT "Telemetry RX".
-}
-
 PRINT "".
 PRINT "Preparing Safe Descent".
 
-LOCK THROTTLE TO MyThrottle.
+setSteering().
 
 WAIT 1.
-IF DEBUG { Telemetry(). }
 
-//SAS ON.
 WAIT 1.
-IF DEBUG { Telemetry(). }
-SET SASMODE TO "RETROGRADE".
-SET MySteer TO SHIP:RETROGRADE.
-LOCK STEERING TO MySteer.
+setRetrograde().
+setSteering().
 WAIT 1.
-IF DEBUG { Telemetry(). }
 
 WAIT 20.
 
@@ -48,8 +33,7 @@ PRINT "Aligned in RETROGRADE".
 // Prepare a slow burn to dip Periapsis under athmosphere limit
 UNTIL SHIP:periapsis < BODY:ATM:height * 0.95 {
     // Break near Apoapsis
-    SET SASMODE TO "RETROGRADE".
-    SET MySteer TO SHIP:RETROGRADE.
+    setRetrograde().
     IF ETA:apoapsis < 30 {
         SET MyStatus TO "Preparing athmospheric DIP". 
         SET MyThrottle TO 0.05.
@@ -59,12 +43,7 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.95 {
         SET MyThrottle TO 0.
     }
     LOCK THROTTLE TO MyThrottle.
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
-    }
-    IF DEBUG { Telemetry(). }
+    setSteering().
     WAIT 0.1.
 }
 LOCK THROTTLE TO 0.
@@ -75,14 +54,11 @@ PANELS OFF. // Foldable solar panels should be stowed
 // Get Apopasis down
 UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height {
     SET MyStatus TO "Flattening Orbit".
-    SET MySteer TO SHIP:RETROGRADE.
-    SET SASMODE TO "RETROGRADE".
-//    SET MyThrottle TO 0.
+    setRetrograde().
+    setSteering().
     IF SHIP:altitude < BODY:ATM:height {
-        IF ETA:periapsis < 15 {
-            SET MyThrottle TO ROUND( MAX( (( 110 - (ETA:periapsis * 12)) / 100), 0), 4).
-//            hudtext(MyThrottle, 1, 4, 26, RED, False).
-//            SET MyThrottle TO 0.75.
+        IF ETA:periapsis < 15 OR (SHIP:ORBIT:PERIOD - ETA:periapsis) < 15 {
+            SET MyThrottle TO ROUND( MAX( (( 110 - ( MIN(ETA:periapsis, SHIP:ORBIT:PERIOD - ETA:periapsis) * 12)) / 100), 0), 4).
             SET MyThrottle TO MIN(MAX(MyThrottle, 0.05), 1).
         } ELSE {
             SET MyThrottle TO 0.001.
@@ -90,13 +66,6 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height
     } else {
         SET MyThrottle TO 0.
     }
-    LOCK THROTTLE TO MyThrottle.
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
-    }
-    IF DEBUG { Telemetry(). }
     WAIT 0.1.
 }
 IF SHIP:apoapsis < BODY:ATM:HEIGHT {
@@ -106,18 +75,11 @@ IF SHIP:apoapsis < BODY:ATM:HEIGHT {
 }
 
 SET MyStatus TO "Final Breakdown".
-IF DEBUG { Telemetry(). }
 // If any fuel remaining do hard break
 UNTIL (SHIP:LIQUIDFUEL < 5 AND SHIP:SOLIDFUEL < 5) {
-    SET SASMODE TO "RETROGRADE".
-    SET MySteer TO SHIP:RETROGRADE.
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
-    }
-    LOCK THROTTLE TO 1.
-    IF DEBUG { Telemetry(). }
+    setRetrograde().
+    setSteering().
+    SET MyThrottle TO 1.
     WAIT 1.
 }
 PRINT "No more fuel, gravity take care of the rest".
@@ -143,30 +105,17 @@ WHEN (NOT CHUTESSAFE) THEN {
     UNLOCK STEERING.
     RETURN (NOT CHUTES).
 }
-IF DEBUG { Telemetry(). }
 
 // Make sure program doesn't end until parachutes are deployed
 UNTIL SHIP:airspeed < 150 {
     IF DEBUG { Telemetry(). }
     IF NOT RELEASED {
-        SET MySteer TO SHIP:RETROGRADE.
-        IF SAS {
-            UNLOCK STEERING.
-        } ELSE {
-            LOCK STEERING TO MySteer.
-        }
+        setRetrograde().
+        setSteering().
     }
     WAIT 0.1.
 }
 PRINT "This step completed at " + ROUND(SHIP:altitude,0) +"m".
 
-SAS OFF.
-LOCK THROTTLE TO 0.
-SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-SET SHIP:CONTROL:NEUTRALIZE TO TRUE.
-UNLOCK STEERING.
-UNLOCK THROTTLE.
-
-IF DEBUG { Telemetry(). }
-
+resetSteering().
 PRINT "YOU ARE ON YOUR OWN NOW!!!!".

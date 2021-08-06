@@ -20,25 +20,9 @@ CLEARSCREEN.
 SET DEBUG TO False.
 SET PITCHUP TO 90.
 
-SET SAFE_ALTITUDES TO lexicon(
-    "Sun", SUN:ATM:HEIGHT, // Don't think we can survive to do a gravityturn from the Sun
-        "Moho", 7500,
-        "Eve", EVE:ATM:HEIGHT,
-            "Gilly", 7500,
-        "Kerbin", KERBIN:ATM:HEIGHT,
-            "Mun", 7200,
-            "Minmus", 6250,
-        "Duna", DUNA:ATM:HEIGHT,
-            "Ike", 13500,
-        "Dres", 6500,
-        "Jool", JOOL:ATM:HEIGHT,
-            "Laythe", LAYTHE:ATM:HEIGHT,
-            "Vall", 9000,
-            "Tylo", 13500,
-            "Bop", 23000,
-            "Pol", 6000,
-        "Eeloo", 4500
-).
+RUN ONCE "0:/lib/science/orbitals".
+RUN ONCE "0:/lib/utils/std".
+
 IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
     IF TARGET_APOAPSIS < (SAFE_ALTITUDES[BODY:NAME] * 1.1) {
         SET TARGET_APOAPSIS TO SAFE_ALTITUDES[BODY:NAME] * 1.1. 

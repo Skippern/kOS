@@ -7,33 +7,13 @@ DECLARE PARAMETER APOAPSIS IS 0, PERIAPSIS IS 0, INCLINATION IS False, ASCENDING
 // ASCENDING_NODE: Latitude of Ascending Node, if False ignore this
 // ARGUMENT_PE: Argument of Periapsis, if False ignore this
 clearScreen.
-SET DEBUG TO False.
 
 IF APOAPSIS = 0 { SET APOAPSIS TO SHIP:ORBIT:apoapsis. }
 IF PERIAPSIS = 0 { SET PERIAPSIS TO SHIP:ORBIT:periapsis. }
 IF APOAPSIS < BODY:ATM:HEIGHT { SET APOAPSIS TO BODY:RADIUS. }
 IF PERIAPSIS > APOAPSIS { SET PERIAPSIS TO APOAPSIS. }
 
-DECLARE FUNCTION setSteering {
-    IF SAS {
-        UNLOCK STEERING.
-    } ELSE {
-        LOCK STEERING TO MySteer.
-    }
-    LOCK THROTTLE TO MyThrottle.
-}
-DECLARE FUNCTION setFacing {
-    SET SASMODE TO "STABILITYASSIST".
-    SET MySteer TO SHIP:FACING.
-}
-DECLARE FUNCTION setPrograde {
-    SET SASMODE TO "PROGRADE".
-    SET MySteer TO SHIP:PROGRADE.
-}
-DECLARE FUNCTION setRetrograde {
-    SET SASMODE TO "RETROGRADE".
-    SET MySteer TO SHIP:RETROGRADE.
-}
+RUN ONCE "0:/lib/utils/std".
 
 DECLARE FUNCTION getReady {
     IF INCLINATION {
@@ -87,21 +67,9 @@ DECLARE FUNCTION orbitSector {
     RETURN False.
 }
 
-DECLARE FUNCTION printTime {
-    PARAMETER myTime.
-    PARAMETER Precission IS 1.
-
-    SET fract TO ROUND( ROUND(myTime,Precission) - FLOOR(myTime) , Precission).
-
-    SET myTime TO TIMESTAMP(myTime).
-
-    RETURN (myTime:year - 1) + "y " + (myTime:day - 1) + "d " + myTime:hour + "h " + myTime:minute + "m " + (myTime:second + fract) + "s". 
-}
-
 SET ApoStatus TO "(Ap status unknown)".
 SET PeriStatus TO "(Pe status unknown)".
 
-IF DEBUG {
     SET LINENUM TO 0.
     DECLARE FUNCTION Telemetry {
         SET LINENUM TO 0.
@@ -159,12 +127,14 @@ IF DEBUG {
         PRINT " ".
         SET i TO i + 1.
     } // Marker moved below telemetry now.
-}
+
+PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + "         ".
+
 SET OrbitAchieved TO False.
 SET NOBURN TO False.
 
 UNTIL OrbitAchieved {
-    IF DEBUG { Telemetry(). }
+    Telemetry(). // DEBUG
     setSteering().
     IF SASMODE = "STABILITYASSIST" {
         setFacing().
@@ -192,10 +162,7 @@ UNTIL OrbitAchieved {
     SET BURNFORCE TO 0.001.
 
     IF orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) {
-//    IF ETA:apoapsis < (LAPTIME / 4) OR ETA:periapsis > (LAPTIME / 4) {
     // Apoapsis Sector
-//        SET BURNTIME TO 60.
-//        SET BURNFORCE TO 0.001.
         IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
             SET MyThrottle TO BURNFORCE.
         } ELSE {
@@ -213,11 +180,8 @@ UNTIL OrbitAchieved {
             SET MyThrottle TO 0.
             SET PeriStatus TO "(Periapsis OK)".
         }
-//    } ELSE {
     } ELSE { // IF orbitSector(0, 45) { // Doesn't wrok cross 0 it seems
     // Periapsis Sector
-//        SET BURNTIME TO 60.
-//        SET BURNFORCE TO 0.001.
         IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
             IF (SHIP:periapsis > (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
                 SET MyThrottle TO BURNFORCE.
@@ -246,4 +210,13 @@ UNTIL OrbitAchieved {
     // End
     WAIT 0.1.
 }
+
+PRINT "ORBIT ACCHIEVED:".
+PRINT SHIP:NAME + "in stable Orbit around " + SHIP:BODY:NAME.
+PRINT "Apoapsis: " + ROUND(SHIP:apoapsis, 1) + "m".
+PRINT "Periapsis: " + ROUND(SHIP:periapsis, 1) + "m".
+PRINT "".
+PRINT "Inclination: " + ROUND(SHIP:ORBIT:inclination, 1) + "°".
+PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN, 1) + "°".
+PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis, 1) + "°".
 

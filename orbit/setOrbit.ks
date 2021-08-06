@@ -7,6 +7,7 @@ DECLARE PARAMETER APOAPSIS IS 0, PERIAPSIS IS 0, INCLINATION IS False, ASCENDING
 // ASCENDING_NODE: Latitude of Ascending Node, if False ignore this
 // ARGUMENT_PE: Argument of Periapsis, if False ignore this
 clearScreen.
+SET DEBUG TO False.
 
 IF APOAPSIS = 0 { SET APOAPSIS TO SHIP:ORBIT:apoapsis. }
 IF PERIAPSIS = 0 { SET PERIAPSIS TO SHIP:ORBIT:periapsis. }
@@ -89,110 +90,97 @@ DECLARE FUNCTION orbitSector {
 DECLARE FUNCTION printTime {
     PARAMETER myTime.
     PARAMETER Precission IS 1.
-    SET tmp TO "".
 
-    if myTime > 3599 {
-        SET i TO FLOOR(myTime/3600).
-        SET myTime TO myTime - (i * 3600).
-        if i > 9 {
-            SET tmp TO i + "hr ".
-        } else {
-            SET tmp TO "0" + i + "hr ".
-        }
-    } ELSE {
-        SET tmp TO "00hr ".
-    }
-    if myTime > 59 {
-        SET i TO FLOOR(myTime/60).
-        SET myTime TO myTime - (i * 60).
-        if i > 9 {
-            SET tmp TO tmp + i + "min ".
-        } else {
-            SET tmp TO tmp + "0" + i + "min ".
-        } 
-    } ELSE {
-        SET tmp TO tmp + "00min ".
-    }
-    if myTime > 9 {
-        SET tmp to tmp + ROUND(myTime,Precission) +"sec".
-    } else {
-        SET tmp TO tmp + "0" + ROUND(myTime,Precission) +"sec".
-    }
-    RETURN tmp.
+    SET fract TO ROUND( ROUND(myTime,Precission) - FLOOR(myTime) , Precission).
+
+    SET myTime TO TIMESTAMP(myTime).
+
+    RETURN (myTime:year - 1) + "y " + (myTime:day - 1) + "d " + myTime:hour + "h " + myTime:minute + "m " + (myTime:second + fract) + "s". 
 }
 
 SET ApoStatus TO "(Ap status unknown)".
 SET PeriStatus TO "(Pe status unknown)".
 
-SET LINENUM TO 0.
-DECLARE FUNCTION Telemetry {
+IF DEBUG {
     SET LINENUM TO 0.
-    PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + "         " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Adjusting Orbit: " + ApoStatus + " " + PeriStatus + "         " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    SET LINENUM TO LINENUM + 1.
-    PRINT "APOAPSIS:                       " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Current: " + ROUND(SHIP:ORBIT:APOAPSIS,1) + "m        ETA: " + printTime(ETA:apoapsis) + "         " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Target: " + ROUND(APOAPSIS,1) +"m     diff: " + ROUND(ABS( APOAPSIS - SHIP:ORBIT:apoapsis ),0) + "m "+ROUND( (ABS(APOAPSIS - SHIP:ORBIT:apoapsis)/APOAPSIS) * 100,1)+"%       " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    SET LINENUM TO LINENUM + 1.
-    PRINT "PERIAPSIS:                       " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Current: " + ROUND(SHIP:ORBIT:PERIAPSIS,1) + "m        ETA: " + printTime(ETA:periapsis) + "         " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Target: " + ROUND(PERIAPSIS,1) +"m     diff: " + ROUND(ABS(PERIAPSIS - SHIP:ORBIT:periapsis),0) + "m "+ROUND( (ABS(PERIAPSIS - SHIP:ORBIT:periapsis)/PERIAPSIS) * 100,2)+"%       " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Setable Orbit Data:               " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    IF INCLINATION {
-        PRINT "INCLINATION: " + ROUND(SHIP:ORBIT:inclination,2) + "°    -> " + ROUND(INCLINATION,2) + "°        " AT(0,LINENUM).
-    } ELSE {
-        PRINT "INCLINATION: " + ROUND(SHIP:ORBIT:inclination,2) + "°            " AT(0,LINENUM).
+    DECLARE FUNCTION Telemetry {
+        SET LINENUM TO 0.
+        PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + "         " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Adjusting Orbit: " + ApoStatus + " " + PeriStatus + "         " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        SET LINENUM TO LINENUM + 1.
+        PRINT "APOAPSIS:                       " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Current: " + ROUND(SHIP:ORBIT:APOAPSIS,1) + "m        ETA: " + printTime(ETA:apoapsis) + "         " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Target: " + ROUND(APOAPSIS,1) +"m     diff: " + ROUND(ABS( APOAPSIS - SHIP:ORBIT:apoapsis ),0) + "m "+ROUND( (ABS(APOAPSIS - SHIP:ORBIT:apoapsis)/APOAPSIS) * 100,1)+"%       " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        SET LINENUM TO LINENUM + 1.
+        PRINT "PERIAPSIS:                       " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Current: " + ROUND(SHIP:ORBIT:PERIAPSIS,1) + "m        ETA: " + printTime(ETA:periapsis) + "         " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Target: " + ROUND(PERIAPSIS,1) +"m     diff: " + ROUND(ABS(PERIAPSIS - SHIP:ORBIT:periapsis),0) + "m "+ROUND( (ABS(PERIAPSIS - SHIP:ORBIT:periapsis)/PERIAPSIS) * 100,2)+"%       " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Setable Orbit Data:               " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        IF INCLINATION {
+            PRINT "INCLINATION: " + ROUND(SHIP:ORBIT:inclination,2) + "°    -> " + ROUND(INCLINATION,2) + "°        " AT(0,LINENUM).
+        } ELSE {
+            PRINT "INCLINATION: " + ROUND(SHIP:ORBIT:inclination,2) + "°            " AT(0,LINENUM).
+        }
+        SET LINENUM TO LINENUM + 1.
+        IF ASCENDING_NODE {
+            PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°    -> " + ROUND(ASCENDING_NODE,1) + "°        " AT(0,LINENUM).
+        } ELSE {
+            PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
+        }
+        SET LINENUM TO LINENUM + 1.
+        IF ARGUMENT_PE {
+            PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°    -> " + ROUND(ARGUMENT_PE,1) + "°        " AT(0,LINENUM).
+        } ELSE {
+            PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°            " AT(0,LINENUM).
+        }
+        SET LINENUM TO LINENUM + 1.
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Other Orbit Data:               " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "ECCENTRICITY: " + ROUND(SHIP:ORBIT:eccentricity,6) + "            " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "True Anomaly: " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
     }
-    SET LINENUM TO LINENUM + 1.
-    IF ASCENDING_NODE {
-        PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°    -> " + ROUND(ASCENDING_NODE,1) + "°        " AT(0,LINENUM).
-    } ELSE {
-        PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
-    }
-    SET LINENUM TO LINENUM + 1.
-    IF ARGUMENT_PE {
-        PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°    -> " + ROUND(ARGUMENT_PE,1) + "°        " AT(0,LINENUM).
-    } ELSE {
-        PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°            " AT(0,LINENUM).
-    }
-    SET LINENUM TO LINENUM + 1.
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Other Orbit Data:               " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "ECCENTRICITY: " + ROUND(SHIP:ORBIT:eccentricity,6) + "            " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "True Anomaly: " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
-    SET LINENUM TO LINENUM + 1.
-    PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
+    IF DEBUG { Telemetry(). }
+    SET i TO -2.
+    UNTIL i = LINENUM {
+        PRINT " ".
+        SET i TO i + 1.
+    } // Marker moved below telemetry now.
 }
-Telemetry().
-SET i TO -2.
-UNTIL i = LINENUM {
-    PRINT " ".
-    SET i TO i + 1.
-} // Marker moved below telemetry now.
 SET OrbitAchieved TO False.
 SET NOBURN TO False.
 
 UNTIL OrbitAchieved {
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     setSteering().
     IF SASMODE = "STABILITYASSIST" {
         setFacing().
     } ELSE IF SASMODE = "RETROGRADE" {
         setRetrograde().
-    } ELSE {
+    } ELSE IF SASMODE = "RETROGRADE" {
         setPrograde().
+    } ELSE IF SASMODE = "NORMAL" {
+    } ELSE IF SASMODE = "ANTINORMAL" {
+    } ELSE IF SASMODE = "RADIALIN" {
+    } ELSE IF SASMODE = "RADIALOUT" {
+    } ELSE IF SASMODE = "TARGET" {
+    } ELSE IF SASMODE = "ANTITARGET" {
+    } ELSE IF SASMODE = "MANEUVER" {
+    } ELSE IF SASMODE = "STABILITY" {
+    } ELSE {
     }
     IF getReady() {
         SET OrbitAchieved TO True.

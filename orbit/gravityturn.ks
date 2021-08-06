@@ -17,7 +17,37 @@ DECLARE PARAMETER AZIMUTH IS 90,
 // If last option TOURIST is set to True, script will abort as soon as orbit is achieved.
 CLEARSCREEN.
 
+SET DEBUG TO False.
 SET PITCHUP TO 90.
+
+SET SAFE_ALTITUDES TO lexicon(
+    "Sun", SUN:ATM:HEIGHT, // Don't think we can survive to do a gravityturn from the Sun
+        "Moho", 7500,
+        "Eve", EVE:ATM:HEIGHT,
+            "Gilly", 7500,
+        "Kerbin", KERBIN:ATM:HEIGHT,
+            "Mun", 7200,
+            "Minmus", 6250,
+        "Duna", DUNA:ATM:HEIGHT,
+            "Ike", 13500,
+        "Dres", 6500,
+        "Jool", JOOL:ATM:HEIGHT,
+            "Laythe", LAYTHE:ATM:HEIGHT,
+            "Vall", 9000,
+            "Tylo", 13500,
+            "Bop", 23000,
+            "Pol", 6000,
+        "Eeloo", 4500
+).
+IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
+    IF TARGET_APOAPSIS < (SAFE_ALTITUDES[BODY:NAME] * 1.1) {
+        SET TARGET_APOAPSIS TO SAFE_ALTITUDES[BODY:NAME] * 1.1. 
+    }
+}
+IF TARGET_APOAPSIS > SHIP:BODY:SOIRADIUS {
+    SET TARGET_APOAPSIS TO SHIP:BODY:SOIRADIUS * 0.99.
+}
+
 IF CIRCULATE {
     SET SAFE_PERIAPSIS TO TARGET_APOAPSIS.
 } ELSE IF TARGET_PERIAPSIS > 500 {
@@ -25,9 +55,6 @@ IF CIRCULATE {
 } ELSE IF BODY:ATM:HEIGHT > 500 {
     SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.1.
 } ELSE { // The following step only for bodies without atmosphere
-    SET SAFE_ALTITUDES TO lexicon(
-        "Mun", 7000
-    ).
     IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
         SET SAFE_PERIAPSIS TO SAFE_ALTITUDES[BODY:NAME].
     } ELSE {
@@ -38,6 +65,8 @@ IF CIRCULATE {
 IF SAFE_PERIAPSIS < (BODY:ATM:HEIGHT * 1.01) { //Periapsis must be set 1% over atmosphere, if lower default to 10% over
     SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.1.
 }
+IF TARGET_APOAPSIS < SAFE_PERIAPSIS { SET TARGET_APOAPSIS TO SAFE_PERIAPSIS. }
+
 // Hardcoded minimum tank level (in units) to be considered empty.
 SET EMPTY TO 0.03.
 
@@ -46,22 +75,20 @@ SET MyAcceleration TO 0.
 SET MyThrottle TO 0.
 SET forceSAS TO False.
 
-DECLARE FUNCTION Telemetry {
-    PRINT MyStatus + "                             " AT(0,0).
-    IF SAS { SET SASStatus TO " ON/". } ELSE { SET SASStatus TO "OFF/". }
-    PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,1).
-    PRINT "Acceleration: " + MyAcceleration + "         " AT(0,2).
-    PRINT "TWR:          " + ROUND(getTWR(),2) + "      " AT(0,3).
-    PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%                                " AT(0,4).
+IF DEBUG {
+    DECLARE FUNCTION Telemetry {
+        PRINT MyStatus + "                             " AT(0,0).
+        IF SAS { SET SASStatus TO " ON/". } ELSE { SET SASStatus TO "OFF/". }
+        PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,1).
+        PRINT "Acceleration: " + MyAcceleration + "         " AT(0,2).
+        PRINT "TWR:          " + ROUND(getTWR(),2) + "      " AT(0,3).
+        PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%                                " AT(0,4).
+    }
 }
-PRINT "Telemetry RX".
-PRINT "Telemetry RX".
-PRINT "Telemetry RX".
-PRINT "Telemetry RX".
-PRINT "Telemetry RX".
+
 
 WAIT 0.1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 WAIT 0.1.
 PRINT "Gravity Turn Sequence is Initiated!".
@@ -71,7 +98,7 @@ PRINT "Target Apoapsis:   " + TARGET_APOAPSIS.
 IF NOT CIRCULATE {
     PRINT "Target Periapsis:    " + SAFE_PERIAPSIS.
 }
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 SET MaxQ TO 18000. // Figure out formula
 SET Margin TO 180. // Height margin of MaxQ
@@ -173,7 +200,7 @@ LOCK THROTTLE TO MyThrottle.
 setFacing().
 SET MySteer TO HEADING(CalcAzi(AZIMUTH),PITCHUP).
 SET MyStatus TO "COUNTDOWN INITIATED!".
-Telemetry().
+IF DEBUG { Telemetry(). }
 RUN "0:lib/countdown".
 PRINT "Ignition!".
 SET MyThrottle TO 1.0.
@@ -181,10 +208,10 @@ setSteering().
 STAGE.
 
 //PRINT "TWR on Ignition: " + ROUND(getTWR(),3).
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 UNTIL SHIP:verticalspeed > 0 {
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 0.01.
 }
 SET MyStatus TO "Lift Off".
@@ -192,7 +219,7 @@ PRINT "We have Lift off!".
 SET MyThrottle TO 1.0.
 setSteering().
 UNTIL SHIP:verticalspeed > 100 {
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 0.01.
 }
 SET MyStatus TO "Craft Tilted to Initiate Turn".
@@ -203,40 +230,40 @@ IF SAS {
 }
 SET MySteer TO HEADING(CalcAzi(AZIMUTH),TILTED).
 setSteering().
-Telemetry().
+IF DEBUG { Telemetry(). }
 WAIT 5. // The next step MUST be delayed
 // Find angle between FACING:FOREVECTOR and PROGRADE
 IF forceSAS {
     SAS ON.
 }
 UNTIL readyToPrograde() {
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     testStage().
     setSteering().
     WAIT 0.1.
 }
 WAIT 0.1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 setPrograde().
 setSteering().
 WAIT 0.1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 WAIT 0.1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 setPrograde().
 setSteering().
 SET MyStatus TO "Prograde Burn".
 PRINT "Changing to SAS PROGRADE Mode. (Ending Initial lift)".
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 // Adjust vessel thrust to 1G
 
 SET PITCHLOCK TO False.
 
-UNTIL SHIP:apoapsis > TARGET_APOAPSIS OR SHIP:altitude > BODY:ATM:HEIGHT {
+UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT {
     SET MyThrottle TO MAX(0.001, MIN(MyThrottle, 1)). // Keep minimum burn all the way
     setSteering().
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     testStage().
 
     // Before maxQ
@@ -330,7 +357,7 @@ UNTIL SHIP:altitude > BODY:ATM:HEIGHT {
     setPrograde().
     SET MyThrottle TO 0.001.
     setSteering().
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 0.1.
 }
 UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (TARGET_PERIAPSIS * 0.95) OR SHIP:apoapsis > BODY:radius {
@@ -342,7 +369,7 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (TARGET_PERIA
     }
     SET MyThrottle TO 1.
     setSteering().
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 0.1.
 }
 // We have achieved desired minimum AP and escaped athmosphere
@@ -350,14 +377,14 @@ SET MyThrottle TO 0.
 setSteering().
 //LOCK THROTTLE TO MyThrottle.
 PRINT "Desired Apoapsis achieved, preparing final burn for orbit.".
-Telemetry().
+IF DEBUG { Telemetry(). }
 WAIT 1.
 
 PRINT "Lifting Periapsis over athmosphere".
 SET MyStatus TO "Lifting Periapsis.".
 SAS ON.
 UNTIL SHIP:periapsis > BODY:ATM:HEIGHT {
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     setSteering().
     IF SHIP:periapsis < SAFE_PERIAPSIS {
         testStage().
@@ -380,10 +407,10 @@ UNTIL SHIP:periapsis > BODY:ATM:HEIGHT {
 }
 WAIT 1.
 SET NOBURN TO False.
-Telemetry().
+IF DEBUG { Telemetry(). }
 IF TOURIST {
     PRINT "ORBIT ACHIEVED, RETURNING TO SURFACE.".
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     SAS OFF.
     LOCK THROTTLE TO 0.
     SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
@@ -397,7 +424,7 @@ IF TOURIST {
     RUN "0:orbit/setOrbit" (TARGET_APOAPSIS, TARGET_PERIAPSIS).
 }
 WAIT 1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 SAS OFF.
 LOCK THROTTLE TO 0.
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
@@ -409,4 +436,4 @@ SET MyStatus TO "Gravity Turn Completed.".
 PRINT "Gravity Turn completed. Orbit adjustments needed.".
 PRINT "Current Apoapsis: " + ROUND(SHIP:apoapsis,1).
 PRINT "Current Periapsis: " + ROUND(SHIP:periapsis,1).
-Telemetry().
+IF DEBUG { Telemetry(). }

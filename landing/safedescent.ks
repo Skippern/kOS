@@ -6,19 +6,22 @@
 // maneuvernodes.ks can activate from here, and controlled start planned maneuvers
 WAIT 1.
 CLEARSCREEN.
+SET DEBUG TO False.
 WAIT 1.
 SET MyStatus TO "Preparing Safe Descent".
 SET MyThrottle TO 0.
 
-DECLARE FUNCTION Telemetry {
-    PRINT MyStatus + "                             " AT(0,0).
-    PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%     " AT(0,1).
-    IF SAS { SET SASStatus TO "ON  / ". } ELSE { SET SASStatus TO "OFF / ". }
-    PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,2).
+IF DEBUG {
+    DECLARE FUNCTION Telemetry {
+        PRINT MyStatus + "                             " AT(0,0).
+        PRINT "Throttle:     " + ROUND(THROTTLE * 100, 1) + "%     " AT(0,1).
+        IF SAS { SET SASStatus TO "ON  / ". } ELSE { SET SASStatus TO "OFF / ". }
+        PRINT "SASMODE:      " + SASStatus + SASMODE + "            " AT(0,2).
+    }
+    PRINT "Telemetry RX".
+    PRINT "Telemetry RX".
+    PRINT "Telemetry RX".
 }
-PRINT "Telemetry RX".
-PRINT "Telemetry RX".
-PRINT "Telemetry RX".
 
 PRINT "".
 PRINT "Preparing Safe Descent".
@@ -26,16 +29,16 @@ PRINT "Preparing Safe Descent".
 LOCK THROTTLE TO MyThrottle.
 
 WAIT 1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 //SAS ON.
 WAIT 1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 SET SASMODE TO "RETROGRADE".
 SET MySteer TO SHIP:RETROGRADE.
 LOCK STEERING TO MySteer.
 WAIT 1.
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 WAIT 20.
 
@@ -61,7 +64,7 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.95 {
     } ELSE {
         LOCK STEERING TO MySteer.
     }
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 0.1.
 }
 LOCK THROTTLE TO 0.
@@ -93,7 +96,7 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.75 OR SHIP:apoapsis < BODY:ATM:height
     } ELSE {
         LOCK STEERING TO MySteer.
     }
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 0.1.
 }
 IF SHIP:apoapsis < BODY:ATM:HEIGHT {
@@ -103,7 +106,7 @@ IF SHIP:apoapsis < BODY:ATM:HEIGHT {
 }
 
 SET MyStatus TO "Final Breakdown".
-Telemetry().
+IF DEBUG { Telemetry(). }
 // If any fuel remaining do hard break
 UNTIL (SHIP:LIQUIDFUEL < 5 AND SHIP:SOLIDFUEL < 5) {
     SET SASMODE TO "RETROGRADE".
@@ -114,7 +117,7 @@ UNTIL (SHIP:LIQUIDFUEL < 5 AND SHIP:SOLIDFUEL < 5) {
         LOCK STEERING TO MySteer.
     }
     LOCK THROTTLE TO 1.
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     WAIT 1.
 }
 PRINT "No more fuel, gravity take care of the rest".
@@ -140,11 +143,11 @@ WHEN (NOT CHUTESSAFE) THEN {
     UNLOCK STEERING.
     RETURN (NOT CHUTES).
 }
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 // Make sure program doesn't end until parachutes are deployed
 UNTIL SHIP:airspeed < 150 {
-    Telemetry().
+    IF DEBUG { Telemetry(). }
     IF NOT RELEASED {
         SET MySteer TO SHIP:RETROGRADE.
         IF SAS {
@@ -164,6 +167,6 @@ SET SHIP:CONTROL:NEUTRALIZE TO TRUE.
 UNLOCK STEERING.
 UNLOCK THROTTLE.
 
-Telemetry().
+IF DEBUG { Telemetry(). }
 
 PRINT "YOU ARE ON YOUR OWN NOW!!!!".

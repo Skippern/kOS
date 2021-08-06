@@ -14,44 +14,18 @@ DECLARE FUNCTION getLocalG {
     RETURN SHIP:BODY:mu / SHIP:BODY:POSITION:MAG ^ 2.
 }
 DECLARE FUNCTION getTWR {
-    // if SHIP:AVAILABLETHRUST is invalid, return 0.
     IF SHIP:availablethrust = 0 { RETURN 0. }
-//    RETURN (SHIP:MASS * getLocalG() ) / Ship:AVAILABLETHRUST.
+
     RETURN  SHIP:AVAILABLETHRUST / (SHIP:MASS * getLocalG() ).
 }
 DECLARE FUNCTION printTime {
     PARAMETER myTime.
     PARAMETER Precission IS 1.
-    SET tmp TO "".
 
-    if myTime > 3599 {
-        SET i TO FLOOR(myTime/3600).
-        SET myTime TO myTime - (i * 3600).
-        if i > 9 {
-            SET tmp TO i + "hr ".
-        } else {
-            SET tmp TO "0" + i + "hr ".
-        }
-    } ELSE {
-        SET tmp TO "00hr ".
-    }
-    if myTime > 59 {
-        SET i TO FLOOR(myTime/60).
-        SET myTime TO myTime - (i * 60).
-        if i > 9 {
-            SET tmp TO tmp + i + "min ".
-        } else {
-            SET tmp TO tmp + "0" + i + "min ".
-        } 
-    } ELSE {
-        SET tmp TO tmp + "00min ".
-    }
-    if myTime > 9 {
-        SET tmp to tmp + ROUND(myTime,Precission) +"sec".
-    } else {
-        SET tmp TO tmp + "0" + ROUND(myTime,Precission) +"sec".
-    }
-    RETURN tmp.
+    SET fract TO ROUND( ROUND(myTime,Precission) - FLOOR(myTime) , Precission).
+    SET myTime TO TIMESTAMP(myTime).
+
+    RETURN (myTime:year - 1) + "y " + (myTime:day - 1) + "d " + myTime:hour + "h " + myTime:minute + "m " + (myTime:second + fract) + "s". 
 }
 
 
@@ -111,6 +85,8 @@ UNTIL false {
     } ELSE {
         PRINT "NO RADIO CONNECTION!!!                                                                          " AT(0,LINENUM).
     }
+    SET LINENUM TO LINENUM + 1.
+    PRINT "KSC Time: " + TIME:calendar + " at " + TIME:clock + "         " AT(0,LINENUM).
 // Stats such as Signal Strength, and connected station is desired here
 
     // Behaviour
@@ -187,9 +163,21 @@ UNTIL false {
 
     SET LINENUM TO LINENUM + 1.
     SET LINENUM TO LINENUM + 1.
-    PRINT "Apoapsis: " + ROUND(SHIP:apoapsis,1) + "m     ETA: " + printTime(ETA:apoapsis) +"      " AT(0,LINENUM).
+    IF SHIP:apoapsis < 0 {
+        PRINT "Apoapsis: NaN                      " AT(0,LINENUM).
+        PRINT "ETA: NaN      " AT(FLOOR(TERMINAL:WIRTH/2),LINENUM).
+    } ELSE {
+        PRINT "Apoapsis: " + ROUND(SHIP:apoapsis,1) + "m              " AT(0,LINENUM).
+        PRINT "ETA: " + printTime(ETA:apoapsis) +"            " AT(FLOOR(TERMINAL:WIDTH/2),LINENUM).
+    }
     SET LINENUM TO LINENUM + 1.
-    PRINT "Periapsis: " + ROUND(SHIP:periapsis,1) + "m     ETA: " + printTime(ETA:periapsis) +"      " AT(0,LINENUM).
+    IF SHIP:periapsis > SHIP:BODY:soiradius {
+        PRINT "Periapsis: NaN                      " AT(0,LINENUM).
+        PRINT "ETA: NaN      " AT(FLOOR(TERMINAL:WIRTH/2),LINENUM). 
+    } ELSE {
+        PRINT "Periapsis: " + ROUND(SHIP:periapsis,1) + "m              " AT(0,LINENUM).
+        PRINT "ETA: " + printTime(ETA:periapsis) +"            " AT(FLOOR(TERMINAL:WIDTH/2),LINENUM).
+    }
     SET LINENUM TO LINENUM + 1.
     PRINT "Altitude: " + ROUND(SHIP:altitude,1) + "m / " + ROUND(SHIP:verticalSpeed,1) + "m/s (vert)          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
@@ -202,13 +190,15 @@ UNTIL false {
     PRINT "Velocity: " + ROUND(SHIP:orbit:velocity:orbit:mag,1) + "m/s (Orbit)           " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     SET mach TO "".
-    IF SHIP:SENSORS:TEMP > 0 AND SHIP:SENSORS:PRES > 0 {
-        SET universalGasConstant TO 8.314. //  J/mol K
-        SET adiabaticConstant TO 1.4. // Constant
-        SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
-        SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
-//        SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M c=("+ROUND(soundSpeed,1)+"m/s)".
-        SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M".
+    IF hasTermometer AND hasBarometer {
+        IF SHIP:SENSORS:TEMP > 0 AND SHIP:SENSORS:PRES > 0 {
+            SET universalGasConstant TO 8.314. //  J/mol K
+            SET adiabaticConstant TO 1.4. // Constant
+            SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
+            SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
+//            SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M c=("+ROUND(soundSpeed,1)+"m/s)".
+            SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M".
+        }
     }
     PRINT "Velocity: " + ROUND(SHIP:airspeed,1) + "m/s (Air) "+mach+"                                   " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
@@ -275,5 +265,5 @@ UNTIL false {
     // EVA Propellant units l? density 0kg/l
     SET LINENUM TO LINENUM + 1.
     PRINT "" AT(0,LINENUM).
-    WAIT 0.1.
+    WAIT 0.05.
 }

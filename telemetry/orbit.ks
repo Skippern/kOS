@@ -11,7 +11,8 @@ SET AIRMAX TO MAX(ROUND(SHIP:INTAKEAIR,0),0.001).
 SET MAXORE TO MAX(ROUND(SHIP:ORE,0),0.001).
 
 RUN ONCE "0:lib/utils/std".
-RUN ONCE "0:/lib/science/orbitals".
+RUN ONCE "0:lib/science/orbitals".
+RUN ONCE "0:lib/comms".
 
 SET hasTermometer TO False.
 SET hasBarometer TO False.
@@ -64,8 +65,8 @@ UNTIL false {
     // Here we should identify radio link to KSC, how many hops, and total signal strength
 //PRINT    SHIP:CONNECTION:destination.
     SET LINENUM TO LINENUM + 1.
-    IF (HOMECONNECTION:ISCONNECTED) {
-        PRINT "Connected to " + HOMECONNECTION:DESTINATION + " with signal delay of " + ROUND(HOMECONNECTION:delay,2) + "s                     " AT(0,LINENUM).
+    IF (hasConnection()) {
+        PRINT "Connected to " + connectedTo() + " with signal delay of " + ROUND(getKSCDelay(),2) + "s                     " AT(0,LINENUM).
     } ELSE {
         PRINT "NO RADIO CONNECTION!!!                                                                          " AT(0,LINENUM).
     }
@@ -149,7 +150,7 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     IF SHIP:apoapsis < 0 {
         PRINT "Apoapsis: NaN                      " AT(0,LINENUM).
-        PRINT "ETA: NaN      " AT(FLOOR(TERMINAL:WIRTH/2),LINENUM).
+        PRINT "ETA: NaN      " AT(FLOOR(TERMINAL:WIDTH/2),LINENUM).
     } ELSE {
         PRINT "Apoapsis: " + ROUND(SHIP:apoapsis,1) + "m              " AT(0,LINENUM).
         PRINT "ETA: " + printTime(ETA:apoapsis) +"            " AT(FLOOR(TERMINAL:WIDTH/2),LINENUM).
@@ -195,7 +196,11 @@ UNTIL false {
     SET LINENUM TO LINENUM + 1.
     PRINT "True Anomaly: " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
+    IF SHIP:apoapsis > 0 {
+        PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
+    } ELSE {
+        PRINT "Anomaly Speed: NaN s/°      " AT(0,LINENUM).
+    }
     SET LINENUM TO LINENUM + 1.
     // Need to capture "Infinitys" for when orbit changes between bodies, or drifting between orbits.
     IF SHIP:apoapsis < 0 {

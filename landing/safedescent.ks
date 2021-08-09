@@ -108,7 +108,6 @@ WHEN (NOT CHUTESSAFE) THEN {
 
 // Make sure program doesn't end until parachutes are deployed
 UNTIL SHIP:airspeed < 150 {
-    IF DEBUG { Telemetry(). }
     IF NOT RELEASED {
         setRetrograde().
         setSteering().

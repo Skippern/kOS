@@ -12,7 +12,7 @@
 // F(t) - F(0) = known Δv
 // Expand, simplify, and solve for t
 
-FUNCTION MANEUVER_TIME {
+DECLARE FUNCTION MANEUVER_TIME {
   PARAMETER dV.
 
   LIST ENGINES IN en.

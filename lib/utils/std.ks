@@ -2,7 +2,35 @@
 //
 // A collection of functions to make life easier
 
+
+// Global variables
+
+SET hasTermometer TO False.
+SET hasBarometer TO False.
+SET hasAccelerometer TO False.
+SET hasGravometer TO FALSE.
+LIST SENSORS IN SENSELIST.
+FOR S IN SENSELIST {
+    IF S:TYPE = "TEMP" {
+        SET hasTermometer TO True.
+    }
+    IF S:TYPE = "PRES" {
+        SET hasBarometer TO True.
+    }
+    IF S:TYPE = "ACC" {
+        SET hasAccelerometer TO True.
+    }
+    IF S:TYPE = "GRAV" {
+        SET hasGravometer TO True.
+    }
+}
+
 // Physics
+global MyACC IS V(0,0,0).
+global myLastVel is SHIP:VELOCITY:ORBIT.
+global myLastTime is TIME:SECONDS.
+global kerbinSurfaceG IS 9.80718.
+
 DECLARE FUNCTION getLocalG {
     RETURN SHIP:BODY:mu / SHIP:BODY:POSITION:MAG ^ 2.
 }
@@ -11,6 +39,29 @@ DECLARE FUNCTION getTWR {
 
     RETURN  SHIP:AVAILABLETHRUST / (SHIP:MASS * getLocalG() ).
 }
+DECLARE FUNCTION getCalculatedAccelleration {
+    local dt IS TIME:SECONDS - myLastTime.
+    if dt > 0 {
+        SET MyACC TO (ship:velocity:orbit - myLastVel) / dt.
+    }
+    SET myLastVel TO SHIP:VELOCITY:ORBIT.
+    SET myLastTime TO TIME:SECONDS.
+
+    RETURN MyACC.
+}
+DECLARE FUNCTION getSoundSpeed { // Retrns the speed of sound c in current athmosphere assuming the gas behaves like air.
+    IF NOT hasTermometer RETURN False.
+    IF NOT hasBarometer RETURN False.
+    SET universalGasConstant TO 8.314. //  J/mol K
+    SET adiabaticConstant TO 1.4. // Constant
+    SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
+    IF SHIP:SENSORS:TEMP > 0 AND SHIP:SENSORS:PRES > 0 {
+        SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
+        RETURN soundSpeed.
+    } ELSE RETURN False.
+}
+
+
 
 // Layout
 DECLARE FUNCTION printTime {

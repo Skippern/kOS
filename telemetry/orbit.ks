@@ -14,32 +14,6 @@ RUN ONCE "0:lib/utils/std".
 RUN ONCE "0:lib/science/orbitals".
 RUN ONCE "0:lib/comms".
 
-SET hasTermometer TO False.
-SET hasBarometer TO False.
-SET hasAccelerometer TO False.
-SET hasGravometer TO FALSE.
-LIST SENSORS IN SENSELIST.
-FOR S IN SENSELIST {
-    IF S:TYPE = "TEMP" {
-        SET hasTermometer TO True.
-    }
-    IF S:TYPE = "PRES" {
-        SET hasBarometer TO True.
-    }
-    IF S:TYPE = "ACC" {
-        SET hasAccelerometer TO True.
-    }
-    IF S:TYPE = "GRAV" {
-        SET hasGravometer TO True.
-    }
-}
-
-
-global MyACC IS V(0,0,0).
-global myLastVel is SHIP:VELOCITY:ORBIT.
-global myLastTime is TIME:SECONDS.
-
-
 UNTIL false {
     SET LINENUM TO 0.
     // Status
@@ -66,7 +40,7 @@ UNTIL false {
 //PRINT    SHIP:CONNECTION:destination.
     SET LINENUM TO LINENUM + 1.
     IF (hasConnection()) {
-        PRINT "Connected to " + connectedTo() + " with signal delay of " + ROUND(getKSCDelay(),2) + "s                     " AT(0,LINENUM).
+        PRINT "Connected to " + connectedTo() + " with signal delay of " + ROUND(getKSCDelay(),5) + "s                     " AT(0,LINENUM).
     } ELSE {
         PRINT "NO RADIO CONNECTION!!!                                                                          " AT(0,LINENUM).
     }
@@ -114,7 +88,7 @@ UNTIL false {
     // Moonless overcast: 0.0001 lx
     SET LINENUM TO LINENUM + 1.
     IF hasTermometer {
-        PRINT "Temp: " + ROUND(SHIP:SENSORS:TEMP,2) + "K / "+ROUND(SHIP:SENSORS:TEMP - 273.15, 2) +"C             " AT(0,LINENUM).
+        PRINT "Temp: " + ROUND(SHIP:SENSORS:TEMP,2) + "K / "+ROUND(SHIP:SENSORS:TEMP - 273.15, 2) +"°C / "+ ROUND(SHIP:SENSORS:TEMP * (9/5) - 459.67, 2) +"°F            " AT(0,LINENUM).   // ℉   ℃
     } ELSE {
         PRINT "Temp: NaN                                                 " AT(0,LINENUM). 
     }
@@ -129,15 +103,9 @@ UNTIL false {
     PRINT "Pressure: " + tmp + "                        " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     IF hasAccelerometer {
-        PRINT "Acceleration: " + ROUND(SHIP:SENSORS:ACC:MAG,2) + "G                  " AT(0,LINENUM).
+        PRINT "Acceleration: " + ROUND(SHIP:SENSORS:ACC:MAG / kerbinSurfaceG,2) + "G                  " AT(0,LINENUM).
     } ELSE {
-        local dt IS TIME:SECONDS - myLastTime.
-        if dt > 0 {
-            SET MyACC TO (ship:velocity:orbit - myLastVel) / dt.
-        }
-        SET myLastVel TO SHIP:VELOCITY:ORBIT.
-        SET myLastTime TO TIME:SECONDS.
-        PRINT "Acceleration: "+ROUND(MyACC:MAG/9.80718,2)+"G (calculated)            " AT(0,LINENUM).
+        PRINT "Acceleration: "+ROUND( getCalculatedAccelleration():MAG / kerbinSurfaceG,2)+"G (calculated)            " AT(0,LINENUM).
     }
     SET LINENUM TO LINENUM + 1.
     IF hasGravometer {

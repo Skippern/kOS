@@ -72,7 +72,7 @@ SET KSCBASE TO list(
     latlng(-0.0973113098728232,-74.6609568876181), // Administration
     latlng(-0.15772588032221,-74.6634518617045), // Shores
     latlng(-0.12756971698715,-74.6136369769917), // Tracking Station
-    latlng(-0.0975828446485879,-74.6115056059051), // VAB (begginging of crawlerway)
+    latlng(-0.0975828446485879,-74.6115056059051), // VAB (beginging of crawlerway)
     latlng(-0.0968732396240264,-74.6037790864328), // Crawlerway
     latlng(-0.0971354786985201,-74.568639473159) // Launchpad
 ).

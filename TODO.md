@@ -1,6 +1,10 @@
 # TODO
 
-* orbit/hoffman - Hoffman manoeuvre to other celestial body
+* orbit/hohmann - Hohmann Transfer to other celestial body
+* orbit/gravityassist - Use Gravity of a celestial body to slingshot towards another celestial body
+* orbit/injection - adjust speed to enter correct orbit upon arrival on a celestial object (gives an eliptic orbit after injection)
+* orbit/aerocapture - use a planets athmosphere to break into an injected orbit (not tested in real life and highly risky)
+* orbit/aerobreake - use a planets athmosphere to lower an eliptic orbit
 * orbit/geostation - Set Geostationary orbit at specified Longitude
 * orbit/rendezvous - Rendezvous with object
 * landing/landing - Safe controlled landing in specified position
@@ -10,7 +14,7 @@
 * rover/path - drive a path to get to a destination avoiding obstacles
 * rover/explore - explore an area and gather science while avoiding obstacles
 * flight/takeoff - get an aircraft to safe altitude
-* flight/landing - land an aircraft
+* flight/landing - land an aircraft in a certain position or runway
 * flight/autopilot - fly a path of waypoints
 * lib/science/contracts - get data related to contracts, such as type of science and experiment waypoint
 * agc/agc - the actual AGC adjusted for Kerbal physics (with option for modded physics / Real Solar System?)
@@ -24,6 +28,7 @@
 * orbit/setOrbit - adjust inclination, deescending node, argument of Periopsis
 * lib/utils/std - collection of standard functions and variables
 * lib/orbitals - collection of data about (experience needed for different scripts) of celestial bodies
+* orbit/maneuvernodes - Executes maneuvernodes set out (need adjustments in start of burn)
 
 # DONE
 

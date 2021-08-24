@@ -24,6 +24,9 @@ DECLARE FUNCTION getReady {
     }
     IF ARGUMENT_PE {
         // Test if Argument of Periapsis matches
+        IF ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis) > 0.3 {
+            RETURN False.
+        }
     }
     // Apoapsis
     IF SHIP:ORBIT:apoapsis > (APOAPSIS * 1.01) {
@@ -67,20 +70,23 @@ DECLARE FUNCTION orbitSector {
     IF ( StartPoint < 0 ) AND ((360 + StartPoint ) < SHIP:ORBIT:trueanomaly ) {
         RETURN True.
     }
-    IF (EndPoint > 360) AND ( SHIP:ORBIT:trueanomaly < ( EndPoint - 360))
-    IF 
+    IF (EndPoint > 360) AND ( SHIP:ORBIT:trueanomaly < ( EndPoint - 360)) {
+        RETURN True.
+    }
+//    IF 
     RETURN False.
 }
 
 SET ApoStatus TO "(Ap status unknown)".
 SET PeriStatus TO "(Pe status unknown)".
+SET ArgumentStatus TO "(Arg status unknown)".
     SET BURNFORCE TO 0.
     SET LINENUM TO 0.
     DECLARE FUNCTION Telemetry {
         SET LINENUM TO 0.
         PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + "         " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "Adjusting Orbit: " + ApoStatus + " " + PeriStatus + "         " AT(0,LINENUM).
+        PRINT "Adjusting Orbit: " + ApoStatus + " " + PeriStatus + " " + ArgumentStatus + "         " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
         PRINT "APOAPSIS:                       " AT(0,LINENUM).
@@ -160,6 +166,7 @@ PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + " 
 
 SET OrbitAchieved TO False.
 SET NOBURN TO False.
+SAS ON.
 
 UNTIL OrbitAchieved {
    IF (MyThrottle > 0) {
@@ -175,13 +182,21 @@ UNTIL OrbitAchieved {
     } ELSE IF SASMODE = "RETROGRADE" {
         setPrograde().
     } ELSE IF SASMODE = "NORMAL" {
+        setNormal().
     } ELSE IF SASMODE = "ANTINORMAL" {
+        setAntiNormal().
     } ELSE IF SASMODE = "RADIALIN" {
+        setRadialIn().
     } ELSE IF SASMODE = "RADIALOUT" {
+        setRadialOut().
     } ELSE IF SASMODE = "TARGET" {
+        setTarget().
     } ELSE IF SASMODE = "ANTITARGET" {
+        setAntiTarget().
     } ELSE IF SASMODE = "MANEUVER" {
+        setManeuver().
     } ELSE IF SASMODE = "STABILITY" {
+        setStability().
     } ELSE {
     }
     IF getReady() {
@@ -221,6 +236,32 @@ UNTIL OrbitAchieved {
         }
     } ELSE IF orbitSector(0, 45) {
     // Periapsis Sector
+        SET ArgAdjust TO False.
+        IF ARGUMENT_PE {
+            // With Periapsis accepted, lets adjust argument
+            IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
+                IF getTWR() > 0 {
+                    SET MyThrottle TO (BURNFORCE *  MAX(ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis),0.5) ).
+                }
+            }
+            IF ARGUMENT_PE > SHIP:ORBIT:argumentofperiapsis {
+                // Increase Argument
+                SET ArgAdjust TO True.
+                SET ArgumentStatus TO "(Increase Arg)".
+                setAntiNormal().
+//                setRadialIn().
+            } ELSE IF ARGUMENT_PE < SHIP:ORBIT:argumentofperiapsis {
+                // Decrease Argument
+                SET ArgAdjust TO True.
+                SET ArgumentStatus TO "(Decreas Arg)".
+                setNormal().
+//                setRadialOut().
+            } ELSE {
+                SET MyThrottle TO 0.
+                SET ArgumentStatus TO "(Arg OK)".
+            }
+        }
+
         IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
             IF (SHIP:periapsis > (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
                 IF getTWR() > 0 {
@@ -233,23 +274,33 @@ UNTIL OrbitAchieved {
                 }
 //                SET MyThrottle TO BURNFORCE.
             } ELSE {
-                SET MyThrottle TO 0.
+                IF NOT ArgAdjust {
+                    SET MyThrottle TO 0.
+                }
             }
         } ELSE {
-            SET MyThrottle TO 0.
+            IF NOT ArgAdjust {
+                SET MyThrottle TO 0.
+            }
         }
 
         IF SHIP:apoapsis < (APOAPSIS * 0.995) {
             // Lift Apoapsis
-            setPrograde().
+            IF NOT ArgAdjust {
+                setPrograde().
+            }
             SET ApoStatus TO "(Rise Apoapsis)".
         } ELSE IF SHIP:apoapsis > (APOAPSIS * 1.005) {
             // Lower Apoapsis
-            setRetrograde().
+                IF NOT ArgAdjust {
+                    setRetrograde().
+                }
             SET ApoStatus TO "(Lower Apoapsis)".
         } ELSE { // Apoapsis accepted
-            SET MyThrottle TO 0.
             SET ApoStatus TO "(Apoapsis OK)".
+            IF NOT ArgAdjust {
+                SET MyThrottle TO 0.
+            }
         }
     } ELSE {
         SET MyThrottle TO 0.
@@ -257,6 +308,7 @@ UNTIL OrbitAchieved {
     // End
     WAIT 0.1.
 }
+resetSteering().
 
 PRINT "ORBIT ACCHIEVED:".
 PRINT SHIP:NAME + " in stable Orbit around " + SHIP:BODY:NAME.

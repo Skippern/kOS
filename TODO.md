@@ -19,12 +19,11 @@
 * lib/science/contracts - get data related to contracts, such as type of science and experiment waypoint
 * agc/agc - the actual AGC adjusted for Kerbal physics (with option for modded physics / Real Solar System?)
 * agc/dsky - Apollo AGC DSKY for ingame display
-* agc/RPi - DSKY for a dedicated RPi unit over telnet
+* agc/RPi - DSKY for a dedicated RPi unit over telnet - or other interface to link the unit with the game.
 * lib/link - Get or send data between active computers
 
 # WORK IN PROGRESS
 
-* orbit/gravityturn - Gravity turn to end as soon as Periapsis is at safe height
 * orbit/setOrbit - adjust inclination, deescending node, argument of Periopsis
 * lib/utils/std - collection of standard functions and variables
 * lib/orbitals - collection of data about (experience needed for different scripts) of celestial bodies
@@ -39,3 +38,4 @@
 * lib/comms - various functions for communicatoin, supports vanilla and RemoteTech
 * lib/getScience - runs experiments and transmits back
 * landing/safedescent - Get inside athmosphere, athmospheric break, parachute down.
+* orbit/gravityturn - Gravity turn, ends when Periapsis is out of the athmosphere.

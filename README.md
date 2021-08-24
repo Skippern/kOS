@@ -26,16 +26,16 @@ To be able to reach the ultimate goal of a RPi DSKY, I would need to figure out 
 
 Scripts are tested and should work with following conditions:
 
-## Windows
+### Windows
 
 * Windows 10
 * KSP 1.12.1
 * kOS Scriptable Autopilot System 1.3.2.0
 
-## Mac
+### Mac
 
 Not tested
 
-## Linux
+### Linux
 
 Not tested

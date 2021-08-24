@@ -1,10 +1,7 @@
 // orbit/gravityturn.ks
 DECLARE PARAMETER AZIMUTH IS 90,
                     TILTED IS 80,
-                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 2, 50000),
-                    CIRCULATE IS False,
-                    TARGET_PERIAPSIS IS 0,
-                    TOURIST IS False.
+                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 2, 50000).
 //
 // Launch with a controlled gravity turn into orbit
 //
@@ -33,13 +30,8 @@ IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
 }
 
 // Verifying Periapsis
-IF CIRCULATE {
-    SET TARGET_PERIAPSIS TO TARGET_APOAPSIS.
-}
-IF BODY:ATM:HEIGHT > 500 AND TARGET_PERIAPSIS < BODY:ATM:HEIGHT {
+IF BODY:ATM:HEIGHT > 500  {
     SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.1.
-} ELSE IF TARGET_PERIAPSIS > 500 {
-    SET SAFE_PERIAPSIS TO TARGET_PERIAPSIS.
 } ELSE { // The following step only for bodies without atmosphere
     IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
         SET SAFE_PERIAPSIS TO SAFE_ALTITUDES[BODY:NAME].
@@ -68,9 +60,7 @@ PRINT "Gravity Turn Sequence is Initiated!".
 PRINT "Departure Heading: " + AZIMUTH.
 PRINT "Gravity Tilt:      " + TILTED.
 PRINT "Target Apoapsis:   " + TARGET_APOAPSIS.
-IF NOT CIRCULATE {
-    PRINT "Target Periapsis:    " + SAFE_PERIAPSIS.
-}
+PRINT "Target Periapsis:  " + SAFE_PERIAPSIS.
 
 SET MaxQ TO 18000. // Figure out formula
 SET Margin TO 180. // Height margin of MaxQ
@@ -204,28 +194,36 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT
         } ELSE IF getMACH() > 0.75 {
             SET MyThrottle TO MyThrottle - 0.001.
         }
-    } ELSE IF SHIP:ALTITUDE < MaxQ + Margin {
-        IF SHIP:altitude < MaxQ {
-            SET MyStatus TO "Before MaxQ".
-            IF SHIP:AIRSPEED > 300 AND ETA:apoapsis > 60 {
-                SET MyThrottle TO MAX(MyThrottle - 0.015, 0.25).
-                setPrograde().
-            }
-            IF SHIP:AIRSPEED < 300 OR ETA:apoapsis < 58 {
-                SET MyThrottle TO MyThrottle + 0.015.
-                setPrograde().
-            }
-//        IF getPitch > 20 {
-//            setFacing().
-//        }
-        } ELSE IF SHIP:altitude < MaxQ + Margin {
-    // Approaching maxQ
-    //
-    // Reduce Throttle to TWR 1.01
-            SET MyThrottle TO MIN(MyThrottle,0.3).
-            setFacing().
-            SET MyStatus TO "In MaxQ ("+SASMODE+")".
+    } ELSE IF SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+        // Use calculated acceleration
+        IF getCalculatedAccelleration():MAG / kerbinSurfaceG < 1 OR SHIP:airspeed < 300 { // IF acceleration less than 1G or Airspeed under 300
+            SET MyThrottle TO MyThrottle + 0.001.
+        } 
+        IF getCalculatedAccelleration():MAG / kerbinSurfaceG > 1 AND SHIP:airspeed > 300 { // IF acceleration over 1G and Airspeed over 300m/s
+            SET MyThrottle TO MyThrottle - 0.001.
         }
+//     } ELSE IF SHIP:ALTITUDE < MaxQ + Margin {
+//         IF SHIP:altitude < MaxQ {
+//             SET MyStatus TO "Before MaxQ".
+//             IF SHIP:AIRSPEED > 300 AND ETA:apoapsis > 60 {
+//                 SET MyThrottle TO MAX(MyThrottle - 0.015, 0.25).
+//                 setPrograde().
+//             }
+//             IF SHIP:AIRSPEED < 300 OR ETA:apoapsis < 58 {
+//                 SET MyThrottle TO MyThrottle + 0.015.
+//                 setPrograde().
+//             }
+// //        IF getPitch > 20 {
+// //            setFacing().
+// //        }
+//         } ELSE IF SHIP:altitude < MaxQ + Margin {
+//     // Approaching maxQ
+//     //
+//     // Reduce Throttle to TWR 1.01
+//             SET MyThrottle TO MIN(MyThrottle,0.3).
+//             setFacing().
+//             SET MyStatus TO "In MaxQ ("+SASMODE+")".
+//         }
     } ELSE IF SHIP:ALTITUDE < BODY:ATM:HEIGHT {
     // After maxQ
         SET MyStatus TO "After MaxQ ("+SASMODE+")".
@@ -303,7 +301,7 @@ UNTIL SHIP:altitude > BODY:ATM:HEIGHT {
     setSteering().
     WAIT 0.1.
 }
-UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (TARGET_PERIAPSIS * 0.95) OR SHIP:apoapsis > BODY:radius {
+UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (SAFE_PERIAPSIS * 0.95) OR SHIP:apoapsis > BODY:radius {
     SET MyStatus TO "Escaped Athmosphere, continue burn to reach target apoapsis".
     testStage().
     setPrograde().
@@ -324,7 +322,7 @@ WAIT 1.
 PRINT "Lifting Periapsis over athmosphere".
 SET MyStatus TO "Lifting Periapsis.".
 SAS ON.
-UNTIL SHIP:periapsis > BODY:ATM:HEIGHT {
+UNTIL SHIP:periapsis > SAFE_PERIAPSIS {
     setSteering().
     IF SHIP:periapsis < SAFE_PERIAPSIS {
         testStage().
@@ -346,31 +344,7 @@ UNTIL SHIP:periapsis > BODY:ATM:HEIGHT {
     WAIT 0.1.
 }
 WAIT 1.
-//SET NOBURN TO False.
-IF TOURIST {
-    PRINT "ORBIT ACHIEVED, RETURNING TO SURFACE.".
-    SAS OFF.
-    LOCK THROTTLE TO 0.
-    SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-    SET SHIP:CONTROL:NEUTRALIZE TO TRUE.
-    UNLOCK STEERING.
-    UNLOCK THROTTLE.
-} ELSE {
-    PRINT "Initiating final adjustments!".
-    SET MyStatus TO "Setting Final Orbit.".
-    WAIT 0.1.
-    UNTIL hasConnection() {
-        WAIT 0.1.
-    }
-    RUN "0:orbit/setOrbit" (TARGET_APOAPSIS, TARGET_PERIAPSIS).
-}
-WAIT 1.
-SAS OFF.
-LOCK THROTTLE TO 0.
-SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-SET SHIP:CONTROL:NEUTRALIZE TO TRUE.
-UNLOCK STEERING.
-UNLOCK THROTTLE.
+resetSteering().
 
 SET MyStatus TO "Gravity Turn Completed.".
 PRINT "Gravity Turn completed. Orbit adjustments needed.".

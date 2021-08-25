@@ -154,15 +154,15 @@ UNTIL false {
     }
     PRINT "Velocity: " + ROUND(SHIP:airspeed,1) + "m/s (Air) "+mach+"                                   " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    PRINT "Inclination: " + ROUND(SHIP:orbit:inclination, 2) + "°        " AT(0,LINENUM).
+    PRINT "Inclination: i " + ROUND(SHIP:orbit:inclination, 2) + "°        " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    PRINT "Eccentricity: " + ROUND(SHIP:ORBIT:eccentricity,5) + "       " AT(0,LINENUM).
+    PRINT "Eccentricity: e " + ROUND(SHIP:ORBIT:eccentricity,5) + "       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
+    PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°            " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
-    PRINT "True Anomaly: " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
+    PRINT "True Anomaly: θ " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     IF SHIP:apoapsis > 0 {
         PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).

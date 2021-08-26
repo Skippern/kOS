@@ -12,6 +12,8 @@ RUN ONCE "0:/lib/utils/std".
 WAIT 1.
 SET MyStatus TO "Preparing Safe Descent".
 SET MyThrottle TO 0.
+//UNSET TARGET. This does not work
+SET TARGET TO SHIP:BODY. // apparently this works, dunno why
 
 PRINT "".
 PRINT "Preparing Safe Descent".

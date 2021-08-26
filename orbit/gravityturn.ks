@@ -348,5 +348,10 @@ resetSteering().
 
 SET MyStatus TO "Gravity Turn Completed.".
 PRINT "Gravity Turn completed. Orbit adjustments needed.".
+PRINT SHIP:NAME + " is in Orbit around " + SHIP:BODY:NAME.
 PRINT "Current Apoapsis: " + ROUND(SHIP:apoapsis,1).
 PRINT "Current Periapsis: " + ROUND(SHIP:periapsis,1).
+PRINT "".
+PRINT "Inclination: i " + ROUND(SHIP:ORBIT:inclination, 1) + "°".
+PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN, 1) + "°".
+PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis, 1) + "°".

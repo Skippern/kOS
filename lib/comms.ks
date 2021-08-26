@@ -165,6 +165,7 @@ DECLARE FUNCTION connectedTo {
     RETURN HOMECONNECTION:DESTINATION.
 }
 
+// This function thorws an exception, will need to figure out how to avoid that.
 DECLARE FUNCTION activateAllLinks {
     IF NOT hasRT { RETURN True. }
     FOR a IN myantennas {

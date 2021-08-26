@@ -1,5 +1,5 @@
 // orbit/setOrbit.ks
-DECLARE PARAMETER APOAPSIS IS 0, PERIAPSIS IS 0, INCLINATION IS False, ASCENDING_NODE IS False, ARGUMENT_PE IS False.
+DECLARE PARAMETER MY_APOAPSIS IS SHIP:ORBIT:apoapsis, MY_PERIAPSIS IS SHIP:ORBIT:periapsis, INCLINATION IS SHIP:ORBIT:inclination, ASCENDING_NODE IS SHIP:ORBIT:LAN, ARGUMENT_PE IS SHIP:ORBIT:argumentofperiapsis.
 //
 // APOAPSIS: Desired Apoapsis, if lower than BODY:ATM:HEIGHT or safe orbit height of the orbiting body, this is ignored
 // PERIAPSIS:  Desired Apoapsis, if lower than BODY:ATM:HEIGHT or safe orbit height of the orbiting body, this is ignored
@@ -8,19 +8,25 @@ DECLARE PARAMETER APOAPSIS IS 0, PERIAPSIS IS 0, INCLINATION IS False, ASCENDING
 // ARGUMENT_PE: Argument of Periapsis, if False ignore this
 clearScreen.
 
-IF APOAPSIS = 0 { SET APOAPSIS TO SHIP:ORBIT:apoapsis. }
-IF PERIAPSIS = 0 { SET PERIAPSIS TO SHIP:ORBIT:periapsis. }
-IF APOAPSIS < BODY:ATM:HEIGHT { SET APOAPSIS TO BODY:RADIUS. }
-IF PERIAPSIS > APOAPSIS { SET PERIAPSIS TO APOAPSIS. }
+IF MY_APOAPSIS = 0 { SET MY_APOAPSIS TO SHIP:ORBIT:apoapsis. }
+IF MY_PERIAPSIS = 0 { SET MY_PERIAPSIS TO SHIP:ORBIT:periapsis. }
+IF MY_APOAPSIS < BODY:ATM:HEIGHT { SET MY_APOAPSIS TO BODY:RADIUS. }
+IF MY_PERIAPSIS > MY_APOAPSIS { SET MY_PERIAPSIS TO MY_APOAPSIS. }
 
 RUN ONCE "0:/lib/utils/std".
 
 DECLARE FUNCTION getReady {
     IF INCLINATION {
         // Test if Inclination matches
+        IF ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.3 {
+            RETURN False.
+        }
     }
     IF ASCENDING_NODE {
         // Test if Ascending Node matches
+        IF ABS(ASCENDING_NODE - SHIP:ORBIT:lan) > 0.3 {
+            RETURN False.
+        }
     }
     IF ARGUMENT_PE {
         // Test if Argument of Periapsis matches
@@ -29,17 +35,17 @@ DECLARE FUNCTION getReady {
         }
     }
     // Apoapsis
-    IF SHIP:ORBIT:apoapsis > (APOAPSIS * 1.01) {
+    IF SHIP:ORBIT:apoapsis > (MY_APOAPSIS * 1.01) {
         RETURN False.
     }
-    IF SHIP:ORBIT:apoapsis < (APOAPSIS * 0.99) {
+    IF SHIP:ORBIT:apoapsis < (MY_APOAPSIS * 0.99) {
         RETURN False.
     }
     // Periapsis
-    IF SHIP:ORBIT:periapsis > (PERIAPSIS * 1.01) {
+    IF SHIP:ORBIT:periapsis > (MY_PERIAPSIS * 1.01) {
         RETURN False.
     }
-    IF SHIP:ORBIT:periapsis < (PERIAPSIS * 0.99) {
+    IF SHIP:ORBIT:periapsis < (MY_PERIAPSIS * 0.99) {
         RETURN False.
     }
     RETURN True.
@@ -93,14 +99,14 @@ SET ArgumentStatus TO "(Arg status unknown)".
         SET LINENUM TO LINENUM + 1.
         PRINT "Current: " + ROUND(SHIP:ORBIT:APOAPSIS,1) + "m        ETA: " + printTime(ETA:apoapsis) + "         " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "Target: " + ROUND(APOAPSIS,1) +"m     diff: " + ROUND(ABS( APOAPSIS - SHIP:ORBIT:apoapsis ),0) + "m "+ROUND( (ABS(APOAPSIS - SHIP:ORBIT:apoapsis)/APOAPSIS) * 100,1)+"%       " AT(0,LINENUM).
+        PRINT "Target: " + ROUND(MY_APOAPSIS,1) +"m     diff: " + ROUND(ABS( MY_APOAPSIS - SHIP:ORBIT:apoapsis ),0) + "m "+ROUND( (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) * 100,1)+"%       " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
         PRINT "PERIAPSIS:                       " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         PRINT "Current: " + ROUND(SHIP:ORBIT:PERIAPSIS,1) + "m        ETA: " + printTime(ETA:periapsis) + "         " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "Target: " + ROUND(PERIAPSIS,1) +"m     diff: " + ROUND(ABS(PERIAPSIS - SHIP:ORBIT:periapsis),0) + "m "+ROUND( (ABS(PERIAPSIS - SHIP:ORBIT:periapsis)/PERIAPSIS) * 100,2)+"%       " AT(0,LINENUM).
+        PRINT "Target: " + ROUND(MY_PERIAPSIS,1) +"m     diff: " + ROUND(ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis),0) + "m "+ROUND( (ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis)/MY_PERIAPSIS) * 100,2)+"%       " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
         PRINT "Setable Orbit Data:               " AT(0,LINENUM).
@@ -125,6 +131,10 @@ SET ArgumentStatus TO "(Arg status unknown)".
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
         PRINT "Other Orbit Data:               " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Position over " + SHIP:BODY:NAME + ": " + ROUND(SHIP:geoposition:lat,3)+"/"+ ROUND(SHIP:geoposition:lng,3) + "       " AT(0,LINENUM).
+        SET LINENUM TO LINENUM + 1.
+        PRINT "Rotation Angle: " + ROUND(BODY:ROTATIONANGLE,2) + "                "  AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         PRINT "ECCENTRICITY: " + ROUND(SHIP:ORBIT:eccentricity,6) + "            " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
@@ -212,21 +222,55 @@ UNTIL OrbitAchieved {
     } ELSE {
         SET BURNFORCE TO 0.
     }
-    IF orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) {
+    // Longitude of ascending node: the longitude an orbit crosses the reference plane
+    //
+    // Adjust by burning Normal/Antinurmal anywhere than ascending node?
+    // I suspect this maneuver can alter all parameters, so best to set first
+    //
+    // Argument of periapsis: the angle from the ascending node to its periapsis
+    //
+    // From near-circular orbit burn prograde at Argument of Periapsis or retrograde where Apoapsis should be
+    // for eliptic orbits, burn radial-in/radial-out
+    // If large changes is necessary, try circulating the orbit before attempting from near-circular orbit
+    // Eccentricity of 0 is fully circular
+    // Ecentricity of 1 is an escape orbit
+    //
+    // Inclination: the angle at Ascending node between orbit and reference plane.
+    //
+    // Set inclination by burning Normal/Antinormal at Ascending Node
+    // User BODY:ROTATIONANGLE to find position of Ascending Node
+    IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.2 AND orbitSector(SHIP:ORBIT:lan, 5) {
+        //
+        IF INCLINATION < SHIP:ORBIT:INCLINATION {
+            // Lower
+            setAntiNormal().
+        } ELSE IF INCLINATION > SHIP:OORBIT:INCLINATION {
+            // Increase
+            setNormal().
+        }
+        IF orbitSector(SHIP:ORBIT:lan, 1) {
+            // burn
+            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+        } ELSE {
+            // No burn
+            SET MyThrottle TO 0.
+        }
+    // Last thing to do is to adjust orbit height, this is the last to be done since it will not alter
+    } ELSE IF orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) {
     // Apoapsis Sector
         IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
             IF getTWR() > 0 {
-                SET MyThrottle TO (100 / (getTWR() ) * (ABS(PERIAPSIS - SHIP:ORBIT:periapsis)/PERIAPSIS)  ).
+                SET MyThrottle TO (100 / (getTWR() ) * (ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis)/MY_PERIAPSIS)  ).
             }
 //            SET MyThrottle TO BURNFORCE.
         } ELSE {
             SET MyThrottle TO 0.
         }
-        IF SHIP:periapsis < (PERIAPSIS * 0.995) {
+        IF SHIP:periapsis < (MY_PERIAPSIS * 0.995) {
             // Lift Periapsis
             setPrograde().
             SET PeriStatus TO "(Rise Periapsis)".
-        } ELSE IF SHIP:periapsis > (PERIAPSIS * 1.005) {
+        } ELSE IF SHIP:periapsis > (MY_PERIAPSIS * 1.005) {
             // Lower Periapsis
             setRetrograde().
             SET PeriStatus TO "(Lower Periapsis)".
@@ -236,74 +280,74 @@ UNTIL OrbitAchieved {
         }
     } ELSE IF orbitSector(0, 45) {
     // Periapsis Sector
-        SET ArgAdjust TO False.
-        IF ARGUMENT_PE {
+//        SET ArgAdjust TO False.
+        // IF ARGUMENT_PE {
             // With Periapsis accepted, lets adjust argument
-            IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
-                IF getTWR() > 0 {
-                    SET MyThrottle TO (BURNFORCE *  MAX(ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis),0.5) ).
-                }
-            }
-            IF ARGUMENT_PE > SHIP:ORBIT:argumentofperiapsis {
-                // Increase Argument
-                SET ArgAdjust TO True.
-                SET ArgumentStatus TO "(Increase Arg)".
-                setAntiNormal().
-//                setRadialIn().
-            } ELSE IF ARGUMENT_PE < SHIP:ORBIT:argumentofperiapsis {
-                // Decrease Argument
-                SET ArgAdjust TO True.
-                SET ArgumentStatus TO "(Decreas Arg)".
-                setNormal().
-//                setRadialOut().
-            } ELSE {
-                SET MyThrottle TO 0.
-                SET ArgumentStatus TO "(Arg OK)".
-            }
-        }
+            // IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
+            //     IF getTWR() > 0 {
+            //         SET MyThrottle TO (BURNFORCE *  MAX(ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis),0.5) ).
+            //     }
+            // }
+//             IF ARGUMENT_PE > SHIP:ORBIT:argumentofperiapsis {
+//                 // Increase Argument
+//                 SET ArgAdjust TO True.
+//                 SET ArgumentStatus TO "(Increase Arg)".
+//                 setAntiNormal().
+// //                setRadialIn().
+//             } ELSE IF ARGUMENT_PE < SHIP:ORBIT:argumentofperiapsis {
+//                 // Decrease Argument
+//                 SET ArgAdjust TO True.
+//                 SET ArgumentStatus TO "(Decreas Arg)".
+//                 setNormal().
+// //                setRadialOut().
+//             } ELSE {
+//                 SET MyThrottle TO 0.
+//                 SET ArgumentStatus TO "(Arg OK)".
+//             }
+//         }
 
         IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
             IF (SHIP:periapsis > (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
-                IF getTWR() > 0 {
-                    SET MyThrottle TO (BURNFORCE *  (ABS(APOAPSIS - SHIP:ORBIT:apoapsis)/APOAPSIS) ).
+                IF getTWR() > 0 AND ETA:periapsis > (BURNTIME * 2) {
+                    SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
 //                SET MyThrottle TO BURNFORCE.
             } ELSE IF SASMODE = "PROGRADE" {
                 IF getTWR() > 0 {
-                    SET MyThrottle TO (BURNFORCE *  (ABS(APOAPSIS - SHIP:ORBIT:apoapsis)/APOAPSIS) ).
+                    SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
 //                SET MyThrottle TO BURNFORCE.
             } ELSE {
-                IF NOT ArgAdjust {
+                // IF NOT ArgAdjust {
                     SET MyThrottle TO 0.
-                }
+                // }
             }
         } ELSE {
-            IF NOT ArgAdjust {
+            // IF NOT ArgAdjust {
                 SET MyThrottle TO 0.
-            }
+            // }
         }
 
-        IF SHIP:apoapsis < (APOAPSIS * 0.995) {
+        IF SHIP:apoapsis < (MY_APOAPSIS * 0.995) {
             // Lift Apoapsis
-            IF NOT ArgAdjust {
+            // IF NOT ArgAdjust {
                 setPrograde().
-            }
+            // }
             SET ApoStatus TO "(Rise Apoapsis)".
-        } ELSE IF SHIP:apoapsis > (APOAPSIS * 1.005) {
+        } ELSE IF SHIP:apoapsis > (MY_APOAPSIS * 1.005) {
             // Lower Apoapsis
-                IF NOT ArgAdjust {
+                // IF NOT ArgAdjust {
                     setRetrograde().
-                }
+                // }
             SET ApoStatus TO "(Lower Apoapsis)".
         } ELSE { // Apoapsis accepted
             SET ApoStatus TO "(Apoapsis OK)".
-            IF NOT ArgAdjust {
+            // IF NOT ArgAdjust {
                 SET MyThrottle TO 0.
-            }
+            // }
         }
-    } ELSE {
-        SET MyThrottle TO 0.
+    // } ELSE {
+    //     SET MyThrottle TO 0.
     }
     // End
     WAIT 0.1.
@@ -315,7 +359,7 @@ PRINT SHIP:NAME + " in stable Orbit around " + SHIP:BODY:NAME.
 PRINT "Apoapsis: " + ROUND(SHIP:apoapsis, 1) + "m".
 PRINT "Periapsis: " + ROUND(SHIP:periapsis, 1) + "m".
 PRINT "".
-PRINT "Inclination: " + ROUND(SHIP:ORBIT:inclination, 1) + "°".
-PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN, 1) + "°".
+PRINT "Inclination: i " + ROUND(SHIP:ORBIT:inclination, 1) + "°".
+PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN, 1) + "°".
 PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis, 1) + "°".
 

@@ -50,25 +50,32 @@ DECLARE FUNCTION getReady {
     }
     RETURN True.
 }
+DECLARE FUNCTION ariesSector {
+    PARAMETER point.
+    PARAMETER pointDev IS 15.
+    IF point > 360 OR point < 0 { RETURN False. } // Invalid point is always false.
+    SET StartPoint TO point - pointDev.
+    SET EndPoint TO point + pointDev.
+
+    IF ( StartPoint < BODY:ROTATIONANGLE ) AND ( BODY:ROTATIONANGLE < EndPoint ) {
+    //     345           360                                0                    15
+        RETURN True.
+    }
+    IF ( StartPoint < 0 ) AND ((360 + StartPoint ) < BODY:ROTATIONANGLE ) {
+        RETURN True.
+    }
+    IF (EndPoint > 360) AND ( BODY:ROTATIONANGLE < ( EndPoint - 360)) {
+        RETURN True.
+    }
+    RETURN False.
+}
 DECLARE FUNCTION orbitSector {
     PARAMETER point.
     PARAMETER pointDev IS 15.
     IF point > 360 OR point < 0 { RETURN False. } // Invalid point is always false.
-//    IF NOT point { RETURN point. }
-
     SET StartPoint TO point - pointDev.
     SET EndPoint TO point + pointDev.
 
-//    IF StartPoint < 0 {
-//        SET StartPoint TO 360 + StartPoint. 
-//    }
-//    IF EndPoint > 360 {
-//        SET EndPoint TO EndPoint - 360.
-//    }
-    // if point 180
-    // StartPoint 165
-    // EndPoint 195
-    //      165        180                                  180                195
     IF ( StartPoint < SHIP:ORBIT:trueanomaly ) AND ( SHIP:ORBIT:trueanomaly < EndPoint ) {
     //     345           360                                0                    15
         RETURN True.
@@ -79,7 +86,6 @@ DECLARE FUNCTION orbitSector {
     IF (EndPoint > 360) AND ( SHIP:ORBIT:trueanomaly < ( EndPoint - 360)) {
         RETURN True.
     }
-//    IF 
     RETURN False.
 }
 
@@ -118,9 +124,9 @@ SET ArgumentStatus TO "(Arg status unknown)".
         }
         SET LINENUM TO LINENUM + 1.
         IF ASCENDING_NODE {
-            PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°    -> " + ROUND(ASCENDING_NODE,1) + "°        " AT(0,LINENUM).
+            PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN,1) + "°    -> " + ROUND(ASCENDING_NODE,1) + "°        " AT(0,LINENUM).
         } ELSE {
-            PRINT "Ascending Node: Ω " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
+            PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
         }
         SET LINENUM TO LINENUM + 1.
         IF ARGUMENT_PE {
@@ -134,11 +140,11 @@ SET ArgumentStatus TO "(Arg status unknown)".
         SET LINENUM TO LINENUM + 1.
         PRINT "Position over " + SHIP:BODY:NAME + ": " + ROUND(SHIP:geoposition:lat,3)+"/"+ ROUND(SHIP:geoposition:lng,3) + "       " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "Rotation Angle: " + ROUND(BODY:ROTATIONANGLE,2) + "                "  AT(0,LINENUM).
+        PRINT "Rotation Angle: ♈︎ " + ROUND(BODY:ROTATIONANGLE,2) + "                "  AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "ECCENTRICITY: " + ROUND(SHIP:ORBIT:eccentricity,6) + "            " AT(0,LINENUM).
+        PRINT "ECCENTRICITY: e " + ROUND(SHIP:ORBIT:eccentricity,6) + "            " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "True Anomaly: " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
+        PRINT "True Anomaly: θ " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
@@ -239,7 +245,8 @@ UNTIL OrbitAchieved {
     //
     // Set inclination by burning Normal/Antinormal at Ascending Node
     // User BODY:ROTATIONANGLE to find position of Ascending Node
-    IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.2 AND orbitSector(SHIP:ORBIT:lan, 5) {
+    IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND orbitSector(180, 20) { // At Apoapsis
+    // IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan, 5) { // At Ascending Node
         //
         IF INCLINATION < SHIP:ORBIT:INCLINATION {
             // Lower
@@ -248,7 +255,8 @@ UNTIL OrbitAchieved {
             // Increase
             setNormal().
         }
-        IF orbitSector(SHIP:ORBIT:lan, 1) {
+        IF orbitSector(180, 1) { // Apoapsis
+//        IF ariesSector(SHIP:ORBIT:LAN, 1) { // Ascending Node
             // burn
             SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
         } ELSE {
@@ -307,11 +315,15 @@ UNTIL OrbitAchieved {
 //         }
 
         IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
-            IF (SHIP:periapsis > (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
+            IF (SHIP:periapsis < (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
                 IF getTWR() > 0 AND ETA:periapsis > (BURNTIME * 2) {
                     SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
 //                SET MyThrottle TO BURNFORCE.
+            } ELSE IF SASMODE = "RETROGRADE" {
+                IF getTWR() > 0 {
+                    SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
+                }
             } ELSE IF SASMODE = "PROGRADE" {
                 IF getTWR() > 0 {
                     SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).

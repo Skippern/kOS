@@ -172,7 +172,7 @@ DECLARE FUNCTION activateAllLinks {
         SET P to SHIP:PARTSNAMED(a:NAME)[0].
         SET M TO P:GETMODULE("ModuleRTAntenna").
         M:DOEVENT("activate").
-        M:SETFIELD("target", "Mission Control"). // Just to be sure we have contact to KSC
+//        M:SETFIELD("target", "Mission Control"). // Just to be sure we have contact to KSC
     }
 }
 

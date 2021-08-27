@@ -24,10 +24,12 @@ RUN ONCE "0:lib/comms".
 IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
     IF TARGET_APOAPSIS < (SAFE_ALTITUDES[BODY:NAME] * 1.1) {
         SET TARGET_APOAPSIS TO SAFE_ALTITUDES[BODY:NAME] * 1.1. 
+    } ELSE IF TARGET_APOAPSIS > (SAFE_ALTITUDES[BODY:NAME] * 10) {
+        SET TARGET_APOAPSIS TO SAFE_ALTITUDES[BODY:NAME] * 10.
     }
 } ELSE IF TARGET_APOAPSIS > SHIP:BODY:SOIRADIUS {
     SET TARGET_APOAPSIS TO SHIP:BODY:SOIRADIUS * 0.99.
-}
+} 
 
 // Verifying Periapsis
 IF BODY:ATM:HEIGHT > 500  {
@@ -301,7 +303,8 @@ UNTIL SHIP:altitude > BODY:ATM:HEIGHT {
     setSteering().
     WAIT 0.1.
 }
-UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (SAFE_PERIAPSIS * 0.95) OR SHIP:apoapsis > BODY:radius {
+//UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (SAFE_PERIAPSIS * 0.95) OR SHIP:apoapsis > BODY:radius {
+UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.95) OR SHIP:periapsis > (SAFE_PERIAPSIS * 0.95) {
     SET MyStatus TO "Escaped Athmosphere, continue burn to reach target apoapsis".
     testStage().
     setPrograde().

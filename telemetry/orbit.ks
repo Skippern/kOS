@@ -103,7 +103,7 @@ UNTIL false {
     PRINT "Pressure: " + tmp + "                        " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     IF hasAccelerometer {
-        PRINT "Acceleration: " + ROUND(SHIP:SENSORS:ACC:MAG / kerbinSurfaceG,2) + "G                  " AT(0,LINENUM).
+        PRINT "Acceleration: " + ROUND(SHIP:SENSORS:ACC:MAG / kerbinSurfaceG,2) + "G / "+ROUND(SHIP:SENSORS:ACC:MAG,1)+"m/s²                  " AT(0,LINENUM).
     } ELSE {
         PRINT "Acceleration: "+ROUND( getCalculatedAccelleration():MAG / kerbinSurfaceG,2)+"G (calculated)            " AT(0,LINENUM).
     }
@@ -111,7 +111,7 @@ UNTIL false {
     IF hasGravometer {
         PRINT "Gravity: "+ ROUND(SHIP:SENSORS:GRAV:MAG,4) +"m/s²                        " AT(0,LINENUM).
     } ELSE {
-        PRINT "Gravity: "+ ROUND(getLocalG(), 4) +" (calculated)                  " AT(0,LINENUM).
+        PRINT "Gravity: "+ ROUND(getLocalG(), 4) +"m/s² (calculated)                  " AT(0,LINENUM).
     }
 
     SET LINENUM TO LINENUM + 1.
@@ -161,6 +161,8 @@ UNTIL false {
     PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°            " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
+    PRINT "Rotation Angle: ♈︎ " + ROUND(BODY:ROTATIONANGLE,2) + "°                "  AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     PRINT "True Anomaly: θ " + ROUND(SHIP:ORBIT:trueanomaly, 1) + "°          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.

@@ -36,7 +36,7 @@ PRINT "Aligned in RETROGRADE".
 UNTIL SHIP:periapsis < BODY:ATM:height * 0.90 {
     // Break near Apoapsis
     setRetrograde().
-    IF ETA:apoapsis < 30 OR (SHIP:ORBIT:PERIOD - ETA:apoapsis) < 30 {
+    IF ETA:apoapsis < 30 OR (SHIP:ORBIT:PERIOD - ETA:apoapsis) < 60 {
         SET MyStatus TO "Preparing athmospheric DIP". 
         SET MyThrottle TO 0.05.
         IF SHIP:periapsis > 100000 { SET MyThrottle TO 1. }
@@ -52,7 +52,7 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.90 {
 LOCK THROTTLE TO 0.
 
 PRINT "Periapsis inside atmosphere".
-PANELS OFF. // Foldable solar panels should be stowed
+//PANELS OFF. // Foldable solar panels should be stowed
 
 // Get Apopasis down
 UNTIL SHIP:periapsis < (BODY:ATM:height * 0.70) OR SHIP:apoapsis < BODY:ATM:height {

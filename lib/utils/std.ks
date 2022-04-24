@@ -30,6 +30,8 @@ global MyACC IS V(0,0,0).
 global myLastVel is SHIP:VELOCITY:ORBIT.
 global myLastTime is TIME:SECONDS.
 global kerbinSurfaceG IS 9.80718.
+global universalGasConstant TO 8.314. //  J/mol K
+global adiabaticConstant TO 1.4. // Constant
 
 DECLARE FUNCTION getLocalG {
     RETURN SHIP:BODY:mu / SHIP:BODY:POSITION:MAG ^ 2.

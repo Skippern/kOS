@@ -14,6 +14,5 @@ UNTIL false {
     telemetryOrbit(22).
     telemetryResources(38).
 
-    PRINT "" AT(0,55).
     WAIT 0.05.
 }

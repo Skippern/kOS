@@ -15,16 +15,39 @@ DECLARE FUNCTION autoRunScience {
 
 DECLARE FUNCTION getScience {
     print "Ready Sensors to gather new science.".
-    SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
+    SET mysensors TO list().
+    FOR x IN SHIP:PARTSNAMEDPATTERN("sensor") {
+        mysensors:add(x).
+    }
+    FOR x IN SHIP:PARTSNAMED("GooExperiment") {
+        mysensors:add(x).
+    }
+    // SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
     FOR s IN mysensors {
-//        PRINT s:NAME.
+    //    PRINT s:NAME.
         PRINT "Gathering Science Data from " + s:TITLE.
         SET M TO s:GETMODULE("ModuleScienceExperiment").
-        M:DUMP. // Dump any unstored data left in the sensor
-        WAIT 0.25.
-        M:RESET. // Reset sensor
-        WAIT 0.25.
-        M:DEPLOY. // Deploy sensor to read new data
+        M:DEPLOY().
+        WAIT 10.
+        // WAIT UNTIL M:HASDATA.
+        PRINT "Module Data Status: " + M:HASDATA.
+        IF M:HASDATA {
+            FOR sd IN M:DATA {
+                PRINT "Data Title: " + sd:TITLE.
+                PRINT "Science Value: " + sd:SCIENCEVALUE.
+                PRINT "Transmit Value: " + sd:TRANSMITVALUE.
+                PRINT "Data Amount: " + sd:DATAAMOUNT.
+            }
+            M:TRANSMIT().
+            WAIT 10.
+        }
+        // M:RESET().
+
+        // M:DUMP. // Dump any unstored data left in the sensor
+        // WAIT 0.25.
+        // M:RESET. // Reset sensor
+        // WAIT 0.25.
+        // M:DEPLOY. // Deploy sensor to read new data
         // Evaluate
         //      This should decide if data should be transfered to science lab, transmitted to kerbin, or stored for return
         // Transfer

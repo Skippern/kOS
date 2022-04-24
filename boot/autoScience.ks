@@ -37,8 +37,8 @@ UNTIL False {
         print "ENTER SLEEP MODE ("+ SCIENCE_INTERVAL[BODY:NAME] +"s)".
         WAIT SCIENCE_INTERVAL[BODY:NAME].
     } ELSE {
-        print "ENTER SLEEP MODE (2000s)".
-        WAIT 2000.
+        print "ENTER SLEEP MODE (1800s)".
+        WAIT 1800.
     }
 }
 

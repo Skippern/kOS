@@ -2,7 +2,7 @@
 //
 // Data related to orbits and orbital objects
 
-SET SAFE_ALTITUDES TO lexicon(
+GLOBAL SAFE_ALTITUDES TO lexicon(
     "Sun", SUN:ATM:HEIGHT, 
         "Moho", 7500,
         "Eve", EVE:ATM:HEIGHT,
@@ -22,7 +22,7 @@ SET SAFE_ALTITUDES TO lexicon(
         "Eeloo", 4500
 ).
 
-SET SCIENCE_INTERVAL TO lexicon(
+GLOBAL SCIENCE_INTERVAL TO lexicon(
     "Sun", 3600, 
         "Moho", 60,
         "Eve", 360,

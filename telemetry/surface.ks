@@ -10,13 +10,11 @@ RUN ONCE "0:lib/telemetry/resources".
 RUN ONCE "0:lib/telemetry/surfaceNav".
 
 UNTIL false {
-    // walkConnection().
     telemetryShip(0).
     telemetryAttitude(6).
     telemetrySensors(16).
     telemetrySurface(22).
     telemetryResources(38).
 
-    PRINT "" AT(0,55).
     WAIT 0.05.
 }

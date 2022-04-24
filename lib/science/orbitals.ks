@@ -21,3 +21,23 @@ SET SAFE_ALTITUDES TO lexicon(
             "Pol", 6000,
         "Eeloo", 4500
 ).
+
+SET SCIENCE_INTERVAL TO lexicon(
+    "Sun", 3600, 
+        "Moho", 60,
+        "Eve", 360,
+            "Gilly", 60,
+        "Kerbin", 360,
+            "Mun", 180,
+            "Minmus", 60,
+        "Duna", 360,
+            "Ike", 60,
+        "Dres", 540,
+        "Jool", 540,
+            "Laythe", 360,
+            "Vall", 60,
+            "Tylo", 90,
+            "Bop", 120,
+            "Pol", 90,
+        "Eeloo", 60
+).

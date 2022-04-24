@@ -14,22 +14,34 @@ DECLARE FUNCTION autoRunScience {
 }
 
 DECLARE FUNCTION getScience {
+    print "Ready Sensors to gather new science.".
     SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
     FOR s IN mysensors {
 //        PRINT s:NAME.
         PRINT "Gathering Science Data from " + s:TITLE.
         SET M TO s:GETMODULE("ModuleScienceExperiment").
-        M:DUMP.
-        M:RESET.
-        M:DEPLOY.
+        M:DUMP. // Dump any unstored data left in the sensor
+        WAIT 0.25.
+        M:RESET. // Reset sensor
+        WAIT 0.25.
+        M:DEPLOY. // Deploy sensor to read new data
+        // Evaluate
+        //      This should decide if data should be transfered to science lab, transmitted to kerbin, or stored for return
+        // Transfer
+        //      This should transfer data to science lab
+        // Transmit
+        //      This should transmit science back to Kerbin
+        // Store
+        //      This should store data for return, or manual transmision
     }
 }
 
 DECLARE FUNCTION transferScienceToLab {
-    print "This function should evaluate store science and transfer to lab data with local research value".
+    print "This function should evaluate stored science and transfer to lab data with local research value.".
 }
 
 DECLARE FUNCTION transmitScience {
+    print "Preparing to transmit stored science.".
     SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
     FOR s IN mysensors {
         PRINT s:NAME.
@@ -43,7 +55,6 @@ DECLARE FUNCTION transmitScience {
             PRINT "Transmit Time Estimated to " + ROUND(TRANSMITTIME,1) + " seconds".
             PANELS ON.
             UNTIL TRANSMITTIME < 0 {
-                Telemetry().
                 SET TRANSMITTIME TO TRANSMITTIME -1. 
                 WAIT 1.
             }
@@ -55,7 +66,7 @@ DECLARE FUNCTION transmitScienceLab {
     declare local ScienceLabModules to list().
     declare local partList to ship:parts.
 
-    // PRINT "Transmitting Available Science Research".
+    PRINT "Transmitting Available Science Research.".
 
     for thePart in partList {
         declare local moduleList to thePart:modules.

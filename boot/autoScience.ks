@@ -14,14 +14,31 @@ SWITCH TO 1.
 //     RUN "0:telemetry/orbit".
 // }
 
+RUN ONCE "0:lib/utils/std".
 RUN ONCE "0:lib/science/auto".
+RUN ONCE "0:lib/science/orbitals".
 
 UNTIL False {
     // autoRunScience().
+    print "GATHERING SCIENCE".
     getScience().
     WAIT 5.
+    print "TRANSMITING SCIENCE LAB DATA".
+    transmitScienceLab().
+    WAIT 5.
+    print "TRANSFERING DATA TO SCIENCE LAB".
     transferScienceToLab().
     WAIT 5.
+    print "TRANSMITTING DATA TO KERBIN".
     transmitScience().
-    WAIT 180.
+    WAIT 5.
+    print "Mission Time: " + printMissionTime().
+    IF SCIENCE_INTERVAL:HASKEY(BODY:NAME) {
+        print "ENTER SLEEP MODE ("+ SCIENCE_INTERVAL[BODY:NAME] +"s)".
+        WAIT SCIENCE_INTERVAL[BODY:NAME].
+    } ELSE {
+        print "ENTER SLEEP MODE (2000s)".
+        WAIT 2000.
+    }
 }
+

@@ -73,6 +73,9 @@ DECLARE FUNCTION printTime {
 
     RETURN (myTime:year - 1) + "y " + (myTime:day - 1) + "d " + myTime:hour + "h " + myTime:minute + "m " + (myTime:second + fract) + "s". 
 }
+DECLARE FUNCTION printMissionTime {
+    RETURN printTime(missionTime).
+}
 
 // Maneuver
 // For setSteering to work, variables MySteering with a vector, and MyThrottle with a scalar between 1 and 0 is needed.

@@ -16,15 +16,29 @@ DECLARE FUNCTION autoRunScience {
 DECLARE FUNCTION getScience {
     print "Ready Sensors to gather new science.".
     SET mysensors TO list().
-    FOR x IN SHIP:PARTSNAMEDPATTERN("sensor") {
-        mysensors:add(x).
+    Set partList to ship:parts.
+
+    for thePart in partList {
+        declare local moduleList to thePart:modules.
+        from {local i is 0.} until i = moduleList:length step {set i to i+1.} do {
+            set theModule to moduleList[i].
+            if (theModule = "ModuleScienceExperiment") or (theModule = "DMModuleScienceAnimate") {
+                mysensors:add(thePart).
+            }
+        }
     }
-    FOR x IN SHIP:PARTSNAMED("GooExperiment") {
-        mysensors:add(x).
-    }
+
+    // FOR x IN SHIP:PARTSNAMEDPATTERN("sensor") {
+    //     mysensors:add(x).
+    // }
+    // FOR x IN SHIP:PARTSNAMED("GooExperiment") {
+    //     mysensors:add(x).
+    // }
+
     // SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
     FOR s IN mysensors {
-    //    PRINT s:NAME.
+        PRINT s.
+        // PRINT s:NAME.
         PRINT "Gathering Science Data from " + s:TITLE.
         SET M TO s:GETMODULE("ModuleScienceExperiment").
         M:DEPLOY().
@@ -34,9 +48,11 @@ DECLARE FUNCTION getScience {
         IF M:HASDATA {
             FOR sd IN M:DATA {
                 PRINT "Data Title: " + sd:TITLE.
-                PRINT "Science Value: " + sd:SCIENCEVALUE.
-                PRINT "Transmit Value: " + sd:TRANSMITVALUE.
-                PRINT "Data Amount: " + sd:DATAAMOUNT.
+                PRINT sd.
+                // PRINT "Science Value: " + sd:SCIENCEVALUE.
+                // PRINT "Transmit Value: " + sd:TRANSMITVALUE.
+                // PRINT "Data Amount: " + sd:DATAAMOUNT.
+                // sd:TRANSMIT.
             }
             M:TRANSMIT().
             WAIT 10.

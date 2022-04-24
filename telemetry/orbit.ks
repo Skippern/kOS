@@ -12,10 +12,12 @@ SET MAXORE TO MAX(ROUND(SHIP:ORE,0),0.001).
 
 RUN ONCE "0:lib/utils/std".
 RUN ONCE "0:lib/science/orbitals".
+RUN ONCE "0:lib/science/auto".
 RUN ONCE "0:lib/comms".
 
 UNTIL false {
     walkConnection().
+    // autoRunScience().
     SET LINENUM TO 0.
     // Status
     PRINT SHIP:TYPE + ": " + SHIPNAME + "                           " AT(0,LINENUM).

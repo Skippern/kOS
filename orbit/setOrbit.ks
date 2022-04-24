@@ -1,11 +1,17 @@
 // orbit/setOrbit.ks
-DECLARE PARAMETER MY_APOAPSIS IS SHIP:ORBIT:apoapsis, MY_PERIAPSIS IS SHIP:ORBIT:periapsis, INCLINATION IS SHIP:ORBIT:inclination, ASCENDING_NODE IS SHIP:ORBIT:LAN, ARGUMENT_PE IS SHIP:ORBIT:argumentofperiapsis.
+DECLARE PARAMETER MY_APOAPSIS IS SHIP:ORBIT:apoapsis, 
+                    MY_PERIAPSIS IS SHIP:ORBIT:periapsis, 
+                    INCLINATION IS SHIP:ORBIT:inclination, 
+                    ASCENDING_NODE IS SHIP:ORBIT:LAN, 
+                    ARGUMENT_PE IS SHIP:ORBIT:argumentofperiapsis.
 //
 // APOAPSIS: Desired Apoapsis, if lower than BODY:ATM:HEIGHT or safe orbit height of the orbiting body, this is ignored
 // PERIAPSIS:  Desired Apoapsis, if lower than BODY:ATM:HEIGHT or safe orbit height of the orbiting body, this is ignored
 // INCLINATION: Inclination of orbit in degrees, if False keep current inclination
 // ASCENDING_NODE: Latitude of Ascending Node, if False ignore this
 // ARGUMENT_PE: Argument of Periapsis, if False ignore this
+//
+// RUN "0:orbit/setOrbit" (500000, 400000).
 clearScreen.
 
 IF MY_APOAPSIS = 0 { SET MY_APOAPSIS TO SHIP:ORBIT:apoapsis. }
@@ -22,13 +28,13 @@ DECLARE FUNCTION getReady {
             RETURN False.
         }
     }
-    IF ASCENDING_NODE {
+    IF ASCENDING_NODE { // Ignore this on circular orbit
         // Test if Ascending Node matches
         IF ABS(ASCENDING_NODE - SHIP:ORBIT:lan) > 0.3 {
             RETURN False.
         }
     }
-    IF ARGUMENT_PE {
+    IF ARGUMENT_PE { // Ignore this on circular orbit
         // Test if Argument of Periapsis matches
         IF ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis) > 0.3 {
             RETURN False.
@@ -53,6 +59,9 @@ DECLARE FUNCTION getReady {
 DECLARE FUNCTION ariesSector {
     PARAMETER point.
     PARAMETER pointDev IS 15.
+    IF point > 360 { SET point TO point - 360. }
+    IF point > 360 { SET point TO point - 360. }
+    IF point < 0 { SET point TO point + 360. }
     IF point > 360 OR point < 0 { RETURN False. } // Invalid point is always false.
     SET StartPoint TO point - pointDev.
     SET EndPoint TO point + pointDev.
@@ -89,16 +98,14 @@ DECLARE FUNCTION orbitSector {
     RETURN False.
 }
 
-SET ApoStatus TO "(Ap status unknown)".
-SET PeriStatus TO "(Pe status unknown)".
-SET ArgumentStatus TO "(Arg status unknown)".
+SET CurrentTask TO "IDLE".
     SET BURNFORCE TO 0.
     SET LINENUM TO 0.
     DECLARE FUNCTION Telemetry {
         SET LINENUM TO 0.
         PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + "         " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "Adjusting Orbit: " + ApoStatus + " " + PeriStatus + " " + ArgumentStatus + "         " AT(0,LINENUM).
+        PRINT "Adjusting Orbit: " + CurrentTask + "                             " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
         PRINT "APOAPSIS:                       " AT(0,LINENUM).
@@ -233,6 +240,52 @@ UNTIL OrbitAchieved {
     // Adjust by burning Normal/Antinurmal anywhere than ascending node?
     // I suspect this maneuver can alter all parameters, so best to set first
     //
+    IF ASCENDING_NODE AND ABS(ASCENDING_NODE - SHIP:ORBIT:LAN) > 0.1 AND ABS(SHIP:ORBIT:inclination) < 1 AND ariesSector(ASCENDING_NODE + 90, 15) { 
+        // Semicircular orbit with low inclination
+        IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
+        SET CurrentTask TO "Adjusting AN (i=0, after AN)".
+        IF INCLINATION {
+            IF INCLINATION > 0 {
+                setNormal().
+            } ELSE {
+                setAntiNormal().
+            }
+        } ELSE IF SHIP:ORBIT:INCLINATION > 0 { 
+            setNormal().
+        } ELSE {
+            setAntiNormal().
+        }
+        IF ariesSector(ASCENDING_NODE + 90, 1) {
+            // burn
+            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+        } ELSE {
+            // No burn
+            SET MyThrottle TO 0.
+        }
+    } ELSE IF ASCENDING_NODE AND ABS(ASCENDING_NODE - SHIP:ORBIT:LAN) > 0.1 AND ABS(SHIP:ORBIT:inclination) < 1 AND ariesSector(ASCENDING_NODE + 270, 15) { 
+        // Semicircular orbit with low inclination
+        IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
+        SET CurrentTask TO "Adjusting AN (i=0, before AN)".
+        IF INCLINATION {
+            IF INCLINATION > 0 {
+                setNormal().
+            } ELSE {
+                setAntiNormal().
+            }
+        } ELSE IF SHIP:ORBIT:INCLINATION > 0 { 
+            setNormal().
+        } ELSE {
+            setAntiNormal().
+        }
+        IF ariesSector(ASCENDING_NODE + 270, 1) {
+            // burn
+            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+        } ELSE {
+            // No burn
+            SET MyThrottle TO 0.
+        }
+        // That was the simple part, now the more complicated is to move AN
+
     // Argument of periapsis: the angle from the ascending node to its periapsis
     //
     // From near-circular orbit burn prograde at Argument of Periapsis or retrograde where Apoapsis should be
@@ -240,23 +293,48 @@ UNTIL OrbitAchieved {
     // If large changes is necessary, try circulating the orbit before attempting from near-circular orbit
     // Eccentricity of 0 is fully circular
     // Ecentricity of 1 is an escape orbit
+    // For eliptical orbits, burn radial at AN/DN
     //
     // Inclination: the angle at Ascending node between orbit and reference plane.
     //
     // Set inclination by burning Normal/Antinormal at Ascending Node
     // User BODY:ROTATIONANGLE to find position of Ascending Node
-    IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND orbitSector(180, 20) { // At Apoapsis
-    // IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan, 5) { // At Ascending Node
+    // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) { // At Apoapsis
+    // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan, MAX(15, ((BURNTIME*2)/AngleSpeed))) { // At Ascending Node
+    } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 90, 3) { // At Ascending Node + 90
         //
+        IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
+        SET CurrentTask TO "Adjusting Inclination (over AN)".
         IF INCLINATION < SHIP:ORBIT:INCLINATION {
             // Lower
-            setAntiNormal().
-        } ELSE IF INCLINATION > SHIP:OORBIT:INCLINATION {
-            // Increase
             setNormal().
+        } ELSE IF INCLINATION > SHIP:ORBIT:INCLINATION {
+            // Increase
+            setAntiNormal().
         }
-        IF orbitSector(180, 1) { // Apoapsis
+        // IF orbitSector(180, 1) { // Apoapsis
 //        IF ariesSector(SHIP:ORBIT:LAN, 1) { // Ascending Node
+       IF ariesSector(SHIP:ORBIT:LAN + 90, 1) { // Ascending Node
+            // burn
+            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+        } ELSE {
+            // No burn
+            SET MyThrottle TO 0.
+        }
+    } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 270, 3) { // At Ascending Node + 270
+        //
+        IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
+        SET CurrentTask TO "Adjusting Inclination (under AN)".
+        IF INCLINATION > SHIP:ORBIT:INCLINATION {
+            // Lower
+            setNormal().
+        } ELSE IF INCLINATION < SHIP:ORBIT:INCLINATION {
+            // Increase
+            setAntiNormal().
+        }
+        // IF orbitSector(180, 1) { // Apoapsis
+//        IF ariesSector(SHIP:ORBIT:LAN, 1) { // Ascending Node
+       IF ariesSector(SHIP:ORBIT:LAN + 270, 1) { // Ascending Node
             // burn
             SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
         } ELSE {
@@ -264,8 +342,9 @@ UNTIL OrbitAchieved {
             SET MyThrottle TO 0.
         }
     // Last thing to do is to adjust orbit height, this is the last to be done since it will not alter
-    } ELSE IF orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) {
+    } ELSE IF orbitSector(180, MAX(5, ((BURNTIME*2)/AngleSpeed))) {
     // Apoapsis Sector
+        SET CurrentTask TO "Adjusting Periapsis".
         IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
             IF getTWR() > 0 {
                 SET MyThrottle TO (100 / (getTWR() ) * (ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis)/MY_PERIAPSIS)  ).
@@ -277,49 +356,22 @@ UNTIL OrbitAchieved {
         IF SHIP:periapsis < (MY_PERIAPSIS * 0.995) {
             // Lift Periapsis
             setPrograde().
-            SET PeriStatus TO "(Rise Periapsis)".
+            IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         } ELSE IF SHIP:periapsis > (MY_PERIAPSIS * 1.005) {
             // Lower Periapsis
             setRetrograde().
-            SET PeriStatus TO "(Lower Periapsis)".
+            IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         } ELSE { // Periapsis accepted
             SET MyThrottle TO 0.
-            SET PeriStatus TO "(Periapsis OK)".
         }
-    } ELSE IF orbitSector(0, 45) {
+    } ELSE IF orbitSector(0, MAX(5, ((BURNTIME*2)/AngleSpeed))) {
     // Periapsis Sector
-//        SET ArgAdjust TO False.
-        // IF ARGUMENT_PE {
-            // With Periapsis accepted, lets adjust argument
-            // IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
-            //     IF getTWR() > 0 {
-            //         SET MyThrottle TO (BURNFORCE *  MAX(ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis),0.5) ).
-            //     }
-            // }
-//             IF ARGUMENT_PE > SHIP:ORBIT:argumentofperiapsis {
-//                 // Increase Argument
-//                 SET ArgAdjust TO True.
-//                 SET ArgumentStatus TO "(Increase Arg)".
-//                 setAntiNormal().
-// //                setRadialIn().
-//             } ELSE IF ARGUMENT_PE < SHIP:ORBIT:argumentofperiapsis {
-//                 // Decrease Argument
-//                 SET ArgAdjust TO True.
-//                 SET ArgumentStatus TO "(Decreas Arg)".
-//                 setNormal().
-// //                setRadialOut().
-//             } ELSE {
-//                 SET MyThrottle TO 0.
-//                 SET ArgumentStatus TO "(Arg OK)".
-//             }
-//         }
-
+        SET CurrentTask TO "Adjusting Apoapsis".
         IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
             IF (SHIP:periapsis < (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
                 IF getTWR() > 0 AND ETA:periapsis > (BURNTIME * 2) {
                     SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
-//                SET MyThrottle TO BURNFORCE.
             } ELSE IF SASMODE = "RETROGRADE" {
                 IF getTWR() > 0 {
                     SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
@@ -328,38 +380,27 @@ UNTIL OrbitAchieved {
                 IF getTWR() > 0 {
                     SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
-//                SET MyThrottle TO BURNFORCE.
             } ELSE {
-                // IF NOT ArgAdjust {
-                    SET MyThrottle TO 0.
-                // }
+                SET MyThrottle TO 0.
             }
         } ELSE {
-            // IF NOT ArgAdjust {
-                SET MyThrottle TO 0.
-            // }
+            SET MyThrottle TO 0.
         }
 
         IF SHIP:apoapsis < (MY_APOAPSIS * 0.995) {
             // Lift Apoapsis
-            // IF NOT ArgAdjust {
-                setPrograde().
-            // }
-            SET ApoStatus TO "(Rise Apoapsis)".
+            setPrograde().
+            IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         } ELSE IF SHIP:apoapsis > (MY_APOAPSIS * 1.005) {
             // Lower Apoapsis
-                // IF NOT ArgAdjust {
-                    setRetrograde().
-                // }
-            SET ApoStatus TO "(Lower Apoapsis)".
+            setRetrograde().
+            IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         } ELSE { // Apoapsis accepted
-            SET ApoStatus TO "(Apoapsis OK)".
-            // IF NOT ArgAdjust {
-                SET MyThrottle TO 0.
-            // }
+            SET MyThrottle TO 0.
         }
-    // } ELSE {
-    //     SET MyThrottle TO 0.
+    } ELSE {
+        SET CurrentTask TO "IDLE".
+        setStability().
     }
     // End
     WAIT 0.1.
@@ -372,6 +413,6 @@ PRINT "Apoapsis: " + ROUND(SHIP:apoapsis, 1) + "m".
 PRINT "Periapsis: " + ROUND(SHIP:periapsis, 1) + "m".
 PRINT "".
 PRINT "Inclination: i " + ROUND(SHIP:ORBIT:inclination, 1) + "°".
-PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN, 1) + "°".
+PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN, 1) + "°". // ☋ for Descending Node
 PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis, 1) + "°".
 

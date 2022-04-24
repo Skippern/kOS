@@ -61,7 +61,7 @@ SET AntennaEnergyConsumePerMit TO lexicon(
     "RTGigaDish1", 7.5, // Reflectron GX-128
 
     // Default value, highest energy cost in all modes
-    "default", 1
+    "default", 24
 ).
 // Range in m
 SET AntennaRange TO lexicon(
@@ -105,7 +105,6 @@ DECLARE FUNCTION getAntennaRange {
             IF i > R { SET R TO i. }
         }
     }
-//    IF R AND myRT { RETURN 6.67. } // RT Default speed
     IF R { RETURN R. }
     RETURN AntennaRange["default"].
 }
@@ -119,7 +118,7 @@ DECLARE FUNCTION getTransmitSpeed {
             IF i > R { SET R TO i. }
         }
     }
-    IF R AND hasRT { RETURN 6.67. } // RT Default speed
+    // IF R AND hasRT { RETURN 6.67. } // RT Default speed
     IF R { RETURN R. }
     RETURN AntennaTransmissionSpeed["default"].
 }
@@ -133,7 +132,7 @@ DECLARE FUNCTION getTransmitEnergy {
             IF R > i { SET R TO i. }
         }
     }
-    IF R AND myRT { RETURN 7.5. } // RT Default Energy consume
+    // IF R AND myRT { RETURN 7.5. } // RT Default Energy consume
     IF R { RETURN R. }
     RETURN AntennaEnergyConsumePerMit["default"].
 }
@@ -147,12 +146,6 @@ DECLARE FUNCTION getKSCDelay {
 
 DECLARE FUNCTION hasConnection {
     IF hasRT {
-        FOR a IN myantennas {
-            IF myRT:ANTENNAHASCONNECTION(a) {
-                RETURN True.
-            }
-//            RETURN False.
-        }
         RETURN myRT:HASCONNECTION(SHIP).
     }
     RETURN HOMECONNECTION:ISCONNECTED.
@@ -169,13 +162,67 @@ DECLARE FUNCTION connectedTo {
 DECLARE FUNCTION activateAllLinks {
     IF NOT hasRT { RETURN True. }
     FOR a IN myantennas {
-        SET P to SHIP:PARTSNAMED(a:NAME)[0].
-        SET M TO P:GETMODULE("ModuleRTAntenna").
-        M:DOEVENT("activate").
-//        M:SETFIELD("target", "Mission Control"). // Just to be sure we have contact to KSC
+        FOR P IN SHIP:partsnamed(a:NAME) {
+            SET M TO P:GETMODULE("ModuleRTAntenna").
+            M:DOEVENT("activate").
+            WAIT 0.5.
+        }
     }
 }
 
 DECLARE FUNCTION queryStations {
-    RETURN myRT:GROUNDSTATIONS().
+    IF hasRT {
+        SET StationList TO myRT:GROUNDSTATIONS().
+        LIST Targets in tgt.
+        FOR t IN tgt {
+            StationList:ADD(t:NAME).
+        }
+        LIST Bodies IN bod.
+        FOR b IN bod {
+            StationList:ADD(b:NAME).
+        }
+        RETURN StationList.
+    }
+    RETURN list("KSC").
+}
+DECLARE FUNCTION queryConnectedStations {
+    IF NOT hasRT { RETURN lexicon("KSC", True). }
+    RETURN  lexicon().
+}
+
+DECLARE FUNCTION queryVesselAntennas {
+    RETURN lexicon().
+}
+
+DECLARE FUNCTION walkConnection {
+    IF hasRT {
+        // Cycle through directional antennas, ignore omnidirectional antennas
+        // If directional antenna has connection, step ahead
+        // Connect to closest station that vessel is not connected to
+        FOR a IN myantennas {
+            FOR p IN SHIP:partsnamed(a:NAME) {
+                SET m TO p:GETMODULE("ModuleRTAntenna").
+                IF m:HASEVENT("deactivate") {
+                    IF m:HASFIELD("dish range") {
+                        IF NOT m:HASEVENT("transmit all science") {
+                            m:SETFIELD("target", "no-target").
+                        }
+                        IF m:GETFIELD("status") = "Operational" {
+                            FOR s IN queryStations() {
+                                m:SETFIELD("target", s).
+                                WAIT 0.25.
+                                IF m:HASEVENT("transmit all science") { RETURN True. }
+                            }
+                            WAIT 0.5.
+                        }
+                    }
+                }
+            }
+        }
+    }
+    IF hasConnection() {
+        RETURN True.
+    }
+    // Code to connect to nearest station
+    RETURN False.
 }

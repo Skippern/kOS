@@ -18,6 +18,14 @@ Newer space flights have much more advanced computers, allowing voice activated 
 
 The DSKY was the control unit of AGC/AGS. I would like to recreate the DSKY as an Raspberry Pi unit, and control flight programs from there.
 
+# AGC/AGS
+
+`AGC` is short for `Automated Guidance Computer` and `AGS` stands for `Automated Guidance System`. It was the brain of the mission.
+
+# Telemetry
+
+All space flights send data back to mission control.
+
 # Planned progression
 
 To be able to reach the ultimate goal of a RPi DSKY, I would need to figure out each separate maneuver and how to execute them in KSP. Therefor I am breaking any complete flight or operation down into single tasks and tie them together. The `quick` folder is meant for quick scripts to test a sequence of script in certain order, or shortcut the execution of a certain task. The folder remains empty since none of these scripts are meant to be shared.
@@ -29,8 +37,11 @@ Scripts are tested and should work with following conditions:
 ### Windows
 
 * Windows 10
-* KSP 1.12.1
+* KSP 1.12.3.3173
+  * Making History 1.12.1
+  * Breaking Ground 1.7.1
 * kOS Scriptable Autopilot System 1.3.2.0
+* RemoteTech 1.9.12.0
 
 ### Mac
 

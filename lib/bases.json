@@ -1,8 +1,29 @@
 {
     "Kerbal Space Center": {
+        "CommNet": [
+            {
+                "type": "KSC",
+                "cone": "omni",
+                "antenna": "dish",
+                "range": [ 4000000, 30000000, 75000000 ]
+            },
+            {
+                "type": "KSC",
+                "cone": "omni",
+                "antenna": "dish",
+                "range": [ 4000000, 30000000, 75000000 ]
+            },
+            {
+                "type": "KSC",
+                "cone": "omni",
+                "antenna": "dish",
+                "range": [ 4000000, 30000000, 75000000 ]
+            }
+        ],
         "Launchpad": {
-            "lat": -0.096944444444444,
-            "long": -74.5575,
+            "lat": -0.0972077956358711,
+            "long": -74.5576802465215,
+            "altitude": 1,
             "ele": 72
         },
         "Airstrip": {
@@ -22,10 +43,16 @@
 
     },
     "Desert Base": {
+        "CommNet": [
+            {
+                "range": 1000000
+            }
+        ],
         "Launchpad": {
             "ele": 824,
-            "lat": -6.560277777777778,
-            "long": -143.95
+            "altitude": 6,
+            "lat": -6.560277777777778, /* -6.56037922303961 */
+            "long": -143.95 /* -143.950010445154 */
         },
         "Airstrip": {
             "runway_start": {
@@ -41,13 +68,33 @@
         }
     },
     "Woomerang": {
+        "CommNet": [
+            {
+                "type": "relay",
+                "cone": "omni",
+                "range": 1000000
+            }
+        ],
         "Launchpad": {
-            "lat": 45.289444444444444,
-            "long": 136.109722222222222,
+            "lat": 45.289444444444444, /* 45.289617194611 */
+            "long": 136.109722222222222, /* 136.109992622809 */
+            "altitude": 6,
             "ele": 738
         }
     },
     "Island Airfield": {
+        "CommNet": [
+            {
+                "type": "relay",
+                "cone": "omni",
+                "range": 1000000
+            }
+        ],
+        "Launchpad": {
+            "lat": -1.52927834203497, /* -1.52927834203497 */
+            "long": -71.8853057906082, /* -71.8853057906082 */
+            "altitude": 6
+        },
         "Airstrip": {
             "patio": {
                 "lat": -1.529166666666667,
@@ -65,5 +112,105 @@
                 "ele": 133
             }
         }
+    },
+    "Cove": {
+        "Launchpad": {
+            "altitude": 5,
+            "lat": 3.74776382024622,
+            "long": -72.2133504968084
+        }
+    },
+    "Glacial Lake": {
+        "Launchpad": {
+            "altitude": 4,
+            "lat": 73.5614620264832,
+            "long": 84.2478087898329
+        }
+    },
+    "Crater Island": {
+        "Launchpad": {
+            "altitude": 3,
+            "lat": 8.3857718371924,
+            "long": -179.697664128363
+        }
+    },
+    "Mahi-Mahi": {
+        "Launchpad": {
+            "altitude": 5,
+            "lat": -49.802341073473,
+            "long": -120.765919048232
+        }
+    },
+    "Baikerbanour": {
+        "CommNet": [
+            {
+                "antenna": "dish",
+                "type": "relay",
+                "cone": "omni",
+                "range": 1000000,
+                "lat": 20.679167,
+                "long": -146.501111
+            }
+        ]
+    },
+    "Crater Rim": {
+        "CommNet": [
+            {
+                "lat": 9.45,
+                "long": -172.110278,
+                "range": 30000000,
+                "antenna": "dish",
+                "type": "relay",
+                "cone": "omni"
+            }
+        ]
+    },
+    "Nye Island": {
+        "CommNet": [
+            {
+                "lat": 5.363611,
+                "long": 108.548056,
+                "range": 75000000,
+                "antenna": "dish",
+                "type": "relay",
+                "cone": "omni"
+            }
+        ]
+    },
+    "Harvester Massif": {
+        "CommNet": [
+            {
+                "lat": -11.95,
+                "long": 33.740278,
+                "range": 30000000,
+                "antenna": "dish",
+                "type": "relay",
+                "cone": "omni"
+            }
+        ]
+    },
+    "North Station One": {
+        "CommNet": [
+            {
+                "lat": 63.095,
+                "long": -90.079722,
+                "range": 30000000,
+                "antenna": "dish",
+                "type": "relay",
+                "cone": "omni"
+            }
+        ]
+    },
+    "Mesa South": {
+        "CommNet": [
+            {
+                "lat": -59.589722,
+                "long": -25.861667,
+                "range": 30000000,
+                "antenna": "dish",
+                "type": "relay",
+                "cone": "omni"
+            }
+        ]
     }
 }

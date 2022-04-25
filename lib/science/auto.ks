@@ -15,9 +15,9 @@ DECLARE FUNCTION autoRunScience {
 
 DECLARE FUNCTION getScience {
     print "Ready Sensors to gather new science.".
+
     SET mysensors TO list().
     Set partList to ship:parts.
-
     for thePart in partList {
         declare local moduleList to thePart:modules.
         from {local i is 0.} until i = moduleList:length step {set i to i+1.} do {
@@ -27,51 +27,52 @@ DECLARE FUNCTION getScience {
             }
         }
     }
-
-    // FOR x IN SHIP:PARTSNAMEDPATTERN("sensor") {
-    //     mysensors:add(x).
-    // }
-    // FOR x IN SHIP:PARTSNAMED("GooExperiment") {
-    //     mysensors:add(x).
-    // }
-
-    // SET mysensors TO SHIP:PARTSNAMEDPATTERN("sensor").
     FOR s IN mysensors {
-        PRINT s.
-        // PRINT s:NAME.
-        PRINT "Gathering Science Data from " + s:TITLE.
         SET M TO s:GETMODULE("ModuleScienceExperiment").
-        M:DEPLOY().
-        WAIT 10.
-        // WAIT UNTIL M:HASDATA.
-        PRINT "Module Data Status: " + M:HASDATA.
-        IF M:HASDATA {
-            FOR sd IN M:DATA {
-                PRINT "Data Title: " + sd:TITLE.
-                PRINT sd.
-                // PRINT "Science Value: " + sd:SCIENCEVALUE.
-                // PRINT "Transmit Value: " + sd:TRANSMITVALUE.
-                // PRINT "Data Amount: " + sd:DATAAMOUNT.
-                // sd:TRANSMIT.
+        IF (M:INOPERABLE) { SET OpStatus TO "N". } ELSE { Set OpStatus TO "Y". }
+        IF (M:RERUNNABLE) { SET ReStatus TO "Y". } ELSE { Set ReStatus TO "N". }
+        IF (M:DEPLOYED) { SET DepStatus TO "Y". } ELSE { Set DepStatus TO "N". }
+        IF (M:HASDATA) { SET DataStatus TO "Y". } ELSE { Set DataStatus TO "N". }
+        PRINT "Gathering Science Data from "+s:TITLE+". Has Data: "+DataStatus+" Operable: "+OpStatus+" Rerunnable: "+ReStatus + " Deployed: "+DepStatus.
+        IF NOT M:INOPERABLE {
+            IF NOT M:HASDATA {
+                M:DEPLOY().
+                WAIT 15.
+                // WAIT UNTIL M:HASDATA.
+            } ELSE {
+                PRINT "WARNING: Not deployingas that would damage already gathered data!!!".
             }
-            M:TRANSMIT().
-            WAIT 10.
+        } ELSE {
+            PRINT "WARNING: Sensor inoperable".
         }
-        // M:RESET().
-
-        // M:DUMP. // Dump any unstored data left in the sensor
-        // WAIT 0.25.
-        // M:RESET. // Reset sensor
-        // WAIT 0.25.
-        // M:DEPLOY. // Deploy sensor to read new data
+        FOR sd IN M:DATA {
+            PRINT "Data Title: " + sd:TITLE + " => Sci: " + sd:SCIENCEVALUE + " => Radio: " + sd:TRANSMITVALUE + " => " + sd:DATAAMOUNT + " Mips".
+            PRINT sd.
+        }
         // Evaluate
         //      This should decide if data should be transfered to science lab, transmitted to kerbin, or stored for return
         // Transfer
         //      This should transfer data to science lab
         // Transmit
         //      This should transmit science back to Kerbin
+        // M:TRANSMIT().
+        // WAIT 10. // replace with formula for transmit time
         // Store
         //      This should store data for return, or manual transmision
+        IF NOT M:INOPERABLE {
+            IF M:RERUNNABLE {
+                PRINT "NOTE: RESETTING SENSOR".
+                M:RESET().
+            }
+        }
+        // Consider to dump remaining data
+        // M:DUMP().
+        IF (M:INOPERABLE) { SET OpStatus TO "N". } ELSE { Set OpStatus TO "Y". }
+        IF (M:RERUNNABLE) { SET ReStatus TO "Y". } ELSE { Set ReStatus TO "N". }
+        IF (M:DEPLOYED) { SET DepStatus TO "Y". } ELSE { Set DepStatus TO "N". }
+        IF (M:HASDATA) { SET DataStatus TO "Y". } ELSE { Set DataStatus TO "N". }
+        PRINT "Status for "+s:TITLE+". Has Data: "+DataStatus+" Operable: "+OpStatus+" Rerunnable: "+ReStatus + " Deployed: "+DepStatus.
+        PRINT " ".
     }
 }
 

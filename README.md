@@ -42,6 +42,8 @@ Scripts are tested and should work with following conditions:
   * Breaking Ground 1.7.1
 * kOS Scriptable Autopilot System 1.3.2.0
 * RemoteTech 1.9.12.0
+* Additional:
+  * Antennas 1.4.99.0 (RT compatible)
 
 ### Mac
 

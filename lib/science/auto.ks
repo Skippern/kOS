@@ -55,7 +55,7 @@ DECLARE FUNCTION getScience {
         //      This should transfer data to science lab
         // Transmit
         //      This should transmit science back to Kerbin
-        // M:TRANSMIT().
+        M:TRANSMIT().
         // WAIT 10. // replace with formula for transmit time
         // Store
         //      This should store data for return, or manual transmision

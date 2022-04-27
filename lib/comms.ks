@@ -33,6 +33,13 @@ SET AntennaTransmissionSpeed TO lexicon(
     "RTLongAntenna3", 7.5, // CommTech EXP-VR-2T
     "RTGigaDish2", 7.5, // CommTech-1
     "RTGigaDish1", 7.5, // Reflectron GX-128
+    // Antennas mod
+    "helixAntenna",        7.5, // H1X Helical
+    "yagiActual",       7.5, // YA6 Yagi
+    "vhfBlade",              7.5, // V17-7 Scimitar
+    "quadHelix",             7.5, // Q4-4 Quad Helix
+    "yagiAntenna",         7.5, // LA-7 Log Periodic
+    "hu6s125",              7.5, // HU6s-125 Twin Loop
 
     // Default value, lowest transmit speed in all modes
     "default", 2.86
@@ -44,7 +51,7 @@ SET AntennaEnergyConsumePerMit TO lexicon(
     "SurfAntenna", 6, // Communotron 16-S
     "mediumDishAntenna", 6, // Communotron DTS-M1
     "HighGainAntenna", 6.67, // Communotron HG-55
-    "commDish", 10, // Communotron 88-88       10 el/Mit
+    "commDish", 10, // Communotron 88-88
     "HighGainAntenna5.v2", 9, // HG-5 High Gain Antenna
     "RelayAntenna5", 24, // RA-2 Relay Antenna
     "RelayAntenna50", 12, // RA-15 Relay Antenna
@@ -59,6 +66,13 @@ SET AntennaEnergyConsumePerMit TO lexicon(
     "RTLongAntenna3", 7.5, // CommTech EXP-VR-2T
     "RTGigaDish2", 7.5, // CommTech-1
     "RTGigaDish1", 7.5, // Reflectron GX-128
+    // Antennas mod
+    "helixAntenna",        7.5, // H1X Helical
+    "yagiActual",       7.5, // YA6 Yagi
+    "vhfBlade",              7.5, // V17-7 Scimitar
+    "quadHelix",             7.5, // Q4-4 Quad Helix
+    "yagiAntenna",         7.5, // LA-7 Log Periodic
+    "hu6s125",              7.5, // HU6s-125 Twin Loop
 
     // Default value, highest energy cost in all modes
     "default", 24
@@ -70,7 +84,7 @@ SET AntennaRange TO lexicon(
     "SurfAntenna",         1500000, // Communotron 16-S
     "mediumDishAntenna",  50000000, // Communotron DTS-M1
     "HighGainAntenna", 25000000000, // Communotron HG-55
-    "commDish",         40000000000, // Communotron 88-88       10 el/Mit
+    "commDish",         40000000000, // Communotron 88-88
     "HighGainAntenna5.v2", 20000000, // HG-5 High Gain Antenna
     "RelayAntenna5",      200000000, // RA-2 Relay Antenna
     "RelayAntenna50",   20000000000, // RA-15 Relay Antenna
@@ -85,6 +99,13 @@ SET AntennaRange TO lexicon(
     "RTLongAntenna3",       3000000, // CommTech EXP-VR-2T
     "RTGigaDish2",     350000000000, // CommTech-1
     "RTGigaDish1",     400000000000, // Reflectron GX-128
+    // Antennas mod
+    "helixAntenna",        70000000, // H1X Helical
+    "yagiActual",       40000000000, // YA6 Yagi
+    "vhfBlade",              300000, // V17-7 Scimitar
+    "quadHelix",             100000, // Q4-4 Quad Helix
+    "yagiAntenna",         50000000, // LA-7 Log Periodic
+    "hu6s125",              1000000, // HU6s-125 Twin Loop
 
     // Default value, highest energy cost in all modes
     "default", 3000    // Default value is set to 3000m

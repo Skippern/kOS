@@ -1,0 +1,114 @@
+{
+    "surface:landed": {
+        "kerbonaut": {
+            "surface_sample": "biome",
+            "eva_report": "biome",
+            "eva_experiment": "global",
+            "astroid_sample": "biome",
+            "comet_sample": "biome"
+        },
+        "capsule": {
+            "crew_report": "biome"
+        },
+        "module": {
+            "mystery_goo": "biome",
+            "material_study": "biome",
+            "temperature": "biome",
+            "pressure": "biome",
+            "gravity": "biome",
+            "seismic": "biome",
+            "athmospheric": "biome"
+        }
+    },
+    "surface:splashed": {
+        "kerbonaut": {
+            "surface_sample": "biome",
+            "eva_report": "biome",
+            "astroid_sample": "biome",
+            "comet_sample": "biome"
+        },
+        "capsule": {
+            "crew_report": "biome"
+        },
+        "module": {
+            "mystery_goo": "biome",
+            "material_study": "biome",
+            "temperature": "biome",
+            "pressure": "biome",
+            "gravity": "biome"
+        }
+    },
+    "flying:low": {
+        "kerbonaut": {
+            "eva_report": "biome",
+            "astroid_sample": "biome",
+            "comet_sample": "biome"
+        },
+        "capsule": {
+            "crew_report": "biome"
+        },
+        "module": {
+            "mystery_goo": "global",
+            "material_study": "global",
+            "temperature": "biome",
+            "pressure": "global",
+            "athmospheric": "biome"
+        }
+    },
+    "flying:high": {
+        "kerbonaut": {
+            "eva_report": "global",
+            "astroid_sample": "global",
+            "comet_sample": "global"
+        },
+        "capsule": {
+            "crew_report": "global"
+        },
+        "module": {
+            "mystery_goo": "global",
+            "material_study": "global",
+            "temperature": "global",
+            "pressure": "global",
+            "athmospheric": "biome"
+        }
+    },
+    "orbit:low": {
+        "kerbonaut": {
+            "eva_report": "biome",
+            "eva_experiment": "global",
+            "astroid_sample": "global",
+            "comet_sample": "global"
+        },
+        "capsule": {
+            "crew_report": "global"
+        },
+        "module": {
+            "mystery_goo": "global",
+            "material_study": "global",
+            "temperature": "global",
+            "pressure": "global",
+            "gravity": "biome",
+            "magnetometer": "global"
+        }
+    },
+    "orbit:high": {
+        "kerbonaut": {
+            "eva_report": "global",
+            "eva_experiment": "global",
+            "astroid_sample": "global",
+            "comet_sample": "global"
+        },
+        "capsule": {
+            "crew_report": "global"
+        },
+        "module": {
+            "mystery_goo": "global",
+            "material_study": "global",
+            "temperature": "global",
+            "pressure": "global",
+            "gravity": "biome",
+            "telescope:ir": "global",
+            "magnetometer": "global"
+        }
+    }
+}

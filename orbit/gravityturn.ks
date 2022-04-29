@@ -1,7 +1,7 @@
 // orbit/gravityturn.ks
 DECLARE PARAMETER AZIMUTH IS 90,
                     TILTED IS 80,
-                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 2, 50000).
+                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 1.4, 50000).
 //
 // Launch with a controlled gravity turn into orbit
 //
@@ -33,7 +33,7 @@ IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
 
 // Verifying Periapsis
 IF BODY:ATM:HEIGHT > 500  {
-    SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.1.
+    SET SAFE_PERIAPSIS TO BODY:ATM:HEIGHT * 1.01.
 } ELSE { // The following step only for bodies without atmosphere
     IF SAFE_ALTITUDES:HASKEY(BODY:NAME) {
         SET SAFE_PERIAPSIS TO SAFE_ALTITUDES[BODY:NAME].

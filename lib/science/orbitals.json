@@ -1,0 +1,479 @@
+{
+    "sol": {
+        "class": "star",
+        "children": [
+            "moho", "eve", "kerbin", "duna", "dres", "jool", "eeloo"
+        ],
+        "biome": [],
+        "science": {
+            "atmosphere": {
+                "low": 1,
+                "high": 1,
+                "border": 18000,
+                "limit": 600000
+            },
+            "space": {
+                "low": 11,
+                "high": 2,
+                "border": 1000000000,
+                "recovery": 4
+            }
+        }
+    },
+    "moho": {
+        "class": "planet",
+        "parrent": "sol",
+        "biome": [
+            "north pole",
+            "northern sinkhole ridge",
+            "northern sinkhole",
+            "highlands",
+            "midlands",
+            "minor craters",
+            "central lowlands",
+            "western lowlands",
+            "south western lowlands",
+            "south eastern lowlands",
+            "canyons",
+            "south pole"
+        ],
+        "science": {
+            "surface": {
+                "landed": 10
+            },
+            "space": {
+                "low": 8,
+                "high": 7,
+                "border": 80000,
+                "recovery": 7
+            }
+        }
+    },
+    "eve": {
+        "class": "planet",
+        "parrent": "sol",
+        "children": [
+            "gilly"
+        ],
+        "biome": [
+            "poles",
+            "lowlands",
+            "midlands",
+            "highlands",
+            "foothills",
+            "peaks",
+            "impact ejecta",
+            "explodium sea",
+            "akatsuki lake",
+            "shallows",
+            "crater lake",
+            "western sea",
+            "olympus",
+            "craters",
+            "eastern sea"
+        ],
+        "science": {
+            "surface": {
+                "landed": 8,
+                "splashed": 8
+            },
+            "atmosphere": {
+                "low": 6,
+                "high": 6,
+                "border": 22000,
+                "limit": 90000
+            },
+            "space": {
+                "low": 7,
+                "high": 5,
+                "border": 400000,
+                "recovery": 5
+            }
+        }
+    },
+    "kerbin": {
+        "class": "planet",
+        "parrent": "sol",
+        "children": [
+            "mun", "minmus"
+        ],
+        "biome": [
+            "grasslands",
+            "deserts",
+            "highlands",
+            "shores",
+            "water",
+            "badlands",
+            "tundra",
+            "ice cap",
+            "southern ice shelf",
+            "northern ice shelf",
+            "mountains"
+        ],
+        "science": {
+            "surface": {
+                "landed": 0.3,
+                "splashed": 0.4
+            },
+            "atmosphere": {
+                "low": 0.7,
+                "high": 0.9,
+                "border": 18000,
+                "limit": 70000
+            },
+            "space": {
+                "low": 1,
+                "high": 1.5,
+                "border": 250000,
+                "recovery": 1
+            }
+        }
+    },
+    "duna": {
+        "class": "planet",
+        "parrent": "sol",
+        "children": [
+            "ike"
+        ],
+        "biome": [
+            "poles",
+            "polar highlands",
+            "polar craters",
+            "highlands",
+            "midlands",
+            "lowlands",
+            "craters",
+            "midland sea",
+            "northeast basin",
+            "southern basin",
+            "northern shelf",
+            "eastern canyon",
+            "western canyon"
+        ],
+        "science": {
+            "surface": {
+                "landed": 8
+            },
+            "atmosphere": {
+                "low": 5,
+                "high": 5,
+                "border": 12000,
+                "limit": 50000
+            },
+            "space": {
+                "low": 7,
+                "high": 5,
+                "border": 140000,
+                "recovery": 5
+            }
+        }
+    },
+    "dres": {
+        "class": "planet",
+        "parrent": "sol",
+        "biome": [
+            "poles",
+            "highlands",
+            "midlands",
+            "lowlansd",
+            "ridges",
+            "impact ejecta",
+            "impact craters",
+            "canyons"
+        ],
+        "science": {
+            "surface": {
+                "landed": 8
+            },
+            "space": {
+                "low": 7,
+                "high": 6,
+                "border": 25000,
+                "recovery": 6
+            }
+        }
+    },
+    "jool": {
+        "class": "planet",
+        "parrent": "sol",
+        "children": [
+            "laythe", "vall", "tylo", "bop", "pol"
+        ],
+        "biome": [],
+        "science": {
+            "atmosphere": {
+                "low": 12,
+                "high": 9,
+                "border": 120000,
+                "limit": 200000
+            },
+            "space": {
+                "low": 7,
+                "high": 6,
+                "border": 4000000,
+                "recovery": 6
+            }
+        }
+    },
+    "eeloo": {
+        "class": "planet",
+        "parrent": "sol",
+        "biome": [
+            "poles",
+            "northern glaciers",
+            "midlands",
+            "lowlands",
+            "ice canyons",
+            "highlands",
+            "craters",
+            "fragipan",
+            "babbage patch",
+            "southern glacier",
+            "mu glacier"
+        ],
+        "science": {
+            "surface": {
+                "landed": 15
+            },
+            "space": {
+                "low": 12,
+                "high": 10,
+                "border": 60000,
+                "recovery": 10
+            }
+        }
+    },
+    "gilly": {
+        "class": "moon",
+        "parrent": "eve",
+        "biome": [
+            "lowlands",
+            "midlands",
+            "highlands"
+        ],
+        "science": {
+            "surface": {
+                "landed": 9
+            },
+            "space": {
+                "low": 8,
+                "high": 6,
+                "border": 6000,
+                "recovery": 6
+            }
+        }
+    },
+    "mun": {
+        "class": "moon",
+        "parrent": "kerbin",
+        "biome": [
+            "poles",
+            "polar lowlands",
+            "polar crater",
+            "highlands",
+            "highland craters",
+            "midlands",
+            "midland craters",
+            "lowlansd",
+            "northeast basin",
+            "farside basin",
+            "northwest crater",
+            "east farside crater",
+            "canyons",
+            "farside crater",
+            "twin craters",
+            "southwest crater"
+        ],
+        "science": {
+            "surface": {
+                "landed": 4
+            },
+            "space": {
+                "low": 3,
+                "high": 2,
+                "border": 60000,
+                "recovery": 2
+            }
+        }
+    },
+    "minmus": {
+        "class": "moon",
+        "parrent": "kerbin",
+        "biome": [
+            "poles",
+            "lowlands",
+            "midlands",
+            "highlands",
+            "slopes",
+            "flats",
+            "lesser flats",
+            "great flats",
+            "greater flats"
+        ],
+        "science": {
+            "surface": {
+                "landed": 5
+            },
+            "space": {
+                "low": 4,
+                "high": 2.5,
+                "border": 30000,
+                "recovery": 2.5
+            }
+        }
+    },
+    "ike": {
+        "class": "moon",
+        "parrent": "duna",
+        "biome": [
+            "polar lowlands",
+            "midlands",
+            "lowlands",
+            "eastern mountain ridge",
+            "western mountain ridge",
+            "central mountain range",
+            "south eastern mountain range",
+            "south pole"
+        ],
+        "science": {
+            "surface": {
+                "landed": 8
+            },
+            "space": {
+                "low": 7,
+                "high": 5,
+                "border": 50000,
+                "recovery": 5
+            }
+        }
+    },
+    "laythe": {
+        "class": "moon",
+        "parrent": "jool",
+        "biome": [
+            "poles",
+            "shores",
+            "dunes",
+            "crescent bay",
+            "the sagen sea",
+            "crater island",
+            "shallows",
+            "crater bay",
+            "degrasse sea",
+            "peaks"
+        ],
+        "science": {
+            "surface": {
+                "landed": 14,
+                "splashed": 12
+            },
+            "atmosphere": {
+                "low": 11,
+                "high": 10,
+                "border": 10000,
+                "limit":50000
+            },
+            "space": {
+                "low": 9,
+                "high": 8,
+                "border": 200000,
+                "recovery": 8
+            }
+        }
+    },
+    "vall": {
+        "class": "moon",
+        "parrent": "jool",
+        "biome": [
+            "poles",
+            "highlands",
+            "midlands",
+            "lowlands",
+            "mountains",
+            "northeast basin",
+            "northwest basin",
+            "southern basin",
+            "southern valleys"
+        ],
+        "science": {
+            "surface": {
+                "landed": 12
+            },
+            "space": {
+                "low": 9,
+                "high": 8,
+                "border": 90000,
+                "recovery": 8
+            }
+        }
+    },
+    "tylo": {
+        "class": "moon",
+        "parrent": "jool",
+        "biome": [
+            "highlands",
+            "midlands",
+            "lowlans",
+            "mara",
+            "minor craters",
+            "gagarin crater",
+            "grissom crater",
+            "galileio crater",
+            "tycho crater"
+        ],
+        "science": {
+            "surface": {
+                "landed": 12
+            },
+            "space": {
+                "low": 10,
+                "high": 8,
+                "border": 250000,
+                "recovery": 8
+            }
+        }
+    },
+    "bop": {
+        "class": "moon",
+        "parrent": "jool",
+        "biome": [
+            "poles",
+            "slopes",
+            "peaks",
+            "valley",
+            "ridges"
+        ],
+        "science": {
+            "surface": {
+                "landed": 12
+            },
+            "space": {
+                "low": 9,
+                "high": 8,
+                "border": 25000,
+                "recovery": 8
+            }
+        }
+    },
+    "pol": {
+        "class": "moon",
+        "parrent": "jool",
+        "biome": [
+            "poles",
+            "lowlands",
+            "midlands",
+            "highlands"
+        ],
+        "science": {
+            "surface": {
+                "landed": 12
+            },
+            "space": {
+                "low": 9,
+                "high": 8,
+                "border": 22000,
+                "recovery": 8
+            }
+        }
+    }
+}

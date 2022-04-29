@@ -41,3 +41,4 @@ GLOBAL SCIENCE_INTERVAL TO lexicon(
             "Pol", 90,
         "Eeloo", 60
 ).
+

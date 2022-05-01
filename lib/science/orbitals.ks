@@ -42,3 +42,12 @@ GLOBAL SCIENCE_INTERVAL TO lexicon(
         "Eeloo", 60
 ).
 
+// Only set Orbital objects with Atmosphere to avoid division by 0
+GLOBAL getMaxQ TO lexicon(
+    "Sun", 18000,
+        "Eve", 22000,
+        "Kerbin", 18000,
+        "Duna", 12000,
+        "Jool", 120000,
+            "Laythe", 10000
+).

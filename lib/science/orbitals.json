@@ -1,10 +1,12 @@
 {
     "sol": {
         "class": "star",
+        "names": [ "sol", "sun", "kerbol" ],
         "children": [
             "moho", "eve", "kerbin", "duna", "dres", "jool", "eeloo"
         ],
         "biome": [],
+        "synchronous_orbit": 1508045282,
         "science": {
             "atmosphere": {
                 "low": 1,
@@ -72,6 +74,7 @@
             "craters",
             "eastern sea"
         ],
+        "synchronous_orbit": 10328472,
         "science": {
             "surface": {
                 "landed": 8,
@@ -110,6 +113,7 @@
             "northern ice shelf",
             "mountains"
         ],
+        "synchronous_orbit": 2863334,
         "science": {
             "surface": {
                 "landed": 0.3,
@@ -150,6 +154,7 @@
             "eastern canyon",
             "western canyon"
         ],
+        "synchronous_orbit": 2880000,
         "science": {
             "surface": {
                 "landed": 8
@@ -181,6 +186,7 @@
             "impact craters",
             "canyons"
         ],
+        "synchronous_orbit": 732244,
         "science": {
             "surface": {
                 "landed": 8
@@ -200,6 +206,7 @@
             "laythe", "vall", "tylo", "bop", "pol"
         ],
         "biome": [],
+        "synchronous_orbit": 15010461,
         "science": {
             "atmosphere": {
                 "low": 12,
@@ -231,6 +238,7 @@
             "southern glacier",
             "mu glacier"
         ],
+        "synchronous_orbit": 683691,
         "science": {
             "surface": {
                 "landed": 15
@@ -251,6 +259,7 @@
             "midlands",
             "highlands"
         ],
+        "synchronous_orbit": 42138,
         "science": {
             "surface": {
                 "landed": 9
@@ -310,6 +319,7 @@
             "great flats",
             "greater flats"
         ],
+        "synchronous_orbit": 357941,
         "science": {
             "surface": {
                 "landed": 5

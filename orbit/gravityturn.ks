@@ -64,8 +64,13 @@ PRINT "Gravity Tilt:      " + TILTED.
 PRINT "Target Apoapsis:   " + TARGET_APOAPSIS.
 PRINT "Target Periapsis:  " + SAFE_PERIAPSIS.
 
-SET MaxQ TO 18000. // Figure out formula
-SET Margin TO 180. // Height margin of MaxQ
+// SET MaxQ TO 18000. // Figure out formula
+IF getMaxQ:HASKEY(BODY:NAME) {
+    SET MaxQ TO getMaxQ[BODY:NAME].
+} ELSE {
+    SET MaxQ TO 1.
+}
+SET Margin TO MaxQ/100. // Height margin of MaxQ
 
 DECLARE FUNCTION getPitch {
     RETURN VectorAngle(SHIP:UP:FOREVECTOR,SHIP:FACING:FOREVECTOR).
@@ -175,7 +180,8 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT
     // Before maxQ
     //
     // Keep Throttle on acceleration of 1G 300 m/s
-    IF hasAccelerometer AND SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+    // IF hasAccelerometer AND SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+    IF hasAccelerometer AND SHIP:altitude < (MaxQ - Margin) {
         // Acellerate at just over 1G as long as speed is at least 300m/s
         IF SHIP:SENSORS:ACC:MAG / kerbinSurfaceG < 1 OR SHIP:airspeed < 300 { // IF acceleration less than 1G or Airspeed under 300
             SET MyThrottle TO MyThrottle + 0.001.
@@ -183,7 +189,8 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT
         IF SHIP:SENSORS:ACC:MAG / kerbinSurfaceG > 1 AND SHIP:airspeed > 300 { // IF acceleration over 1G and Airspeed over 300m/s
             SET MyThrottle TO MyThrottle - 0.001.
         }
-    } ELSE IF getMACH() AND SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+    // } ELSE IF getMACH() AND SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+    } ELSE IF getMACH() AND SHIP:altitude < (MaxQ - Margin) {
         SET MyStatus TO "Preparing for MaxQ".
         setPrograde().
         // We can use MACH to avoid overburning at MaxQ
@@ -196,7 +203,8 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT
         } ELSE IF getMACH() > 0.75 {
             SET MyThrottle TO MyThrottle - 0.001.
         }
-    } ELSE IF SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+    // } ELSE IF SHIP:altitude < (BODY:ATM:HEIGHT / 3) {
+    } ELSE IF SHIP:altitude < (MaxQ - Margin) {
         // Use calculated acceleration
         IF getCalculatedAccelleration():MAG / kerbinSurfaceG < 1 OR SHIP:airspeed < 300 { // IF acceleration less than 1G or Airspeed under 300
             SET MyThrottle TO MyThrottle + 0.001.
@@ -329,10 +337,10 @@ UNTIL SHIP:periapsis > SAFE_PERIAPSIS {
     setSteering().
     IF SHIP:periapsis < SAFE_PERIAPSIS {
         testStage().
-        IF ETA:apoapsis < 58 { SET MyThrottle TO MyThrottle + 0.1. }
-        IF ETA:apoapsis > 60 { SET MyThrottle TO MyThrottle - 0.01. }
+        IF ETA:apoapsis < 60 - min((getTWR() * 3), 40) { SET MyThrottle TO MyThrottle + 0.1. }
+        IF ETA:apoapsis > 60 - min((getTWR() / 2), 20) { SET MyThrottle TO MyThrottle - 0.01. }
         IF ETA:apoapsis > 70 { SET MyThrottle TO MyThrottle - 0.04. }
-        IF ETA:apoapsis > 99 { SET MyThrottle TO 0. }
+        IF ETA:apoapsis > 100 + (20 - (getTWR() * 5)) { SET MyThrottle TO 0. }
         IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
             setFacing().
             SET MyThrottle TO 1.

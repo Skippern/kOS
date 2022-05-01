@@ -1,0 +1,219 @@
+{
+    "longAntenna": {
+        "source": "Stock",
+        "name": "Communotron 16",
+        "type": "omni",
+        "antennaRange": 2500000,
+        "energyConsumeActive": 6,
+        "transmissionSpeed": 3.33
+    },
+    "SurfAntenna": {
+        "source": "Stock",
+        "name": "Communotron 16-S",
+        "type": "omni",
+        "transmissionSpeed": 3.33,
+        "energyConsumeActive": 6,
+        "antennaRange": 1500000
+    },
+    "mediumDishAntenna": {
+        "source": "Stock",
+        "name": "Communotron DTS-M1",
+        "type": "dish",
+        "cone": 45,
+        "transmissionSpeed": 5.71,
+        "energyConsumeActive": 6,
+        "antennaRange": 50000000
+    },
+    "HighGainAntenna": {
+        "source": "Stock",
+        "name": "Communotron HG-55",
+        "type": "dish",
+        "cone": 0.120,
+        "transmissionSpeed": 20,
+        "energyConsumeActive": 6.67,
+        "antennaRange": 25000000000
+    },
+    "commDish": {
+        "source": "Stock",
+        "name": "Communotron 88-88",
+        "type": "dish",
+        "cone": 0.06,
+        "transmissionSpeed": 20,
+        "energyConsumeActive": 10,
+        "antennaRange": 40000000000
+    },
+    "HighGainAntenna5.v2": {
+        "source": "Stock",
+        "name": "HG-5 High Gain Antenna",
+        "type": "dish",
+        "cone": 90,
+        "transmissionSpeed": 5.71,
+        "energyConsumeActive": 9,
+        "antennaRange": 20000000
+    },
+    "RelayAntenna5": {
+        "source": "Stock",
+        "name": "RA-2 Relay Antenna",
+        "type": "dish",
+        "cone": 12.5,
+        "transmissionSpeed": 2.86,
+        "energyConsumeActive": 24,
+        "antennaRange": 200000000
+    },
+    "RelayAntenna50": {
+        "source": "Stock",
+        "name": "RA-15 Relay Antenna",
+        "type": "dish",
+        "cone": 0.25,
+        "transmissionSpeed": 5.71,
+        "energyConsumeActive": 12,
+        "antennaRange": 20000000000
+    },
+    "RelayAntenna100": {
+        "source": "Stock",
+        "name": "RA-100 Relay Antenna",
+        "type": "dish",
+        "cone": 0.025,
+        "transmissionSpeed": 11.43,
+        "energyConsumeActive": 6,
+        "antennaRange": 250000000000
+    },
+    "RTShortAntenna1": {
+        "source": "RemoteTech",
+        "name": "Reflectron DP-10",
+        "type": "omni",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 500000
+    },
+    "RTLongAntenna2": {
+        "source": "RemoteTech",
+        "name": "Communotron 32",
+        "type": "omni",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 5000000
+    },
+    "RTShortDish2": {
+        "source": "RemoteTech",
+        "name": "Reflectron KR-7",
+        "type": "dish",
+        "cone": 25,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 90000000
+    },
+    "RTShortDish1": {
+        "source": "RemoteTech",
+        "name": "Reflectron SS-5",
+        "comment": "Replaced with KR-7",
+        "type": "dish",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 0
+    },
+    "RTLongDish2": {
+        "source": "RemoteTech",
+        "name": "Reflectron KR-14",
+        "type": "dish",
+        "cone": 0.04,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 60000000000
+    },
+    "RTLongDish1": {
+        "source": "RemoteTech",
+        "name": "Reflectron LL-5",
+        "comment": "Replaced with KR-14",
+        "type": "dish",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 0
+    },
+    "RTLongAntenna3": {
+        "source": "RemoteTech",
+        "name": "CommTech EXP-VR-2T",
+        "type": "omni",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 3000000
+    },
+    "RTGigaDish2": {
+        "source": "RemoteTech",
+        "name": "CommTech-1",
+        "type": "dish",
+        "cone": 0.006,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 350000000000
+    },
+    "RTGigaDish1": {
+        "source": "RemoteTech",
+        "name": "Reflectron 6X-128",
+        "type": "dish",
+        "cone": 0.005,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 400000000000
+    },
+    "helixAntenna": {
+        "source": "Antennas",
+        "name": "H1X Helical",
+        "type": "dish",
+        "cone": 35,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 70000000
+    },
+    "yagiActual": {
+        "source": "Antennas",
+        "name": "YA6 Yagi",
+        "type": "dish",
+        "cone": 0.1,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 40000000000
+    },
+    "vhfBlade": {
+        "source": "Antennas",
+        "name": "V17-7 Scimitar",
+        "type": "omni",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 300000
+    },
+    "quadHelix": {
+        "source": "Antennas",
+        "name": "Q4-4 Quad Helix",
+        "type": "omni",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 100000
+    },
+    "yagiAntenna": {
+        "source": "Antennas",
+        "name": "LA-7 Log Periodic",
+        "type": "dish",
+        "cone": 60,
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 50000000
+    },
+    "hu6s125": {
+        "source": "Antennas",
+        "name": "HU6s-125 Twin Loop",
+        "type": "omni",
+        "transmissionSpeed": 7.5,
+        "energyConsumeActive": 7.5,
+        "antennaRange": 1000000
+    },
+    "default": {
+        "source": "Default",
+        "name": "Default",
+        "comment": "Fallback",
+        "type": "omni",
+        "transmissionSpeed": 2.86,
+        "energyConsumeActive": 24,
+        "antennaRange": 3000
+    }
+}

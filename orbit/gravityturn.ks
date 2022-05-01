@@ -212,28 +212,12 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT
         IF getCalculatedAccelleration():MAG / kerbinSurfaceG > 1 AND SHIP:airspeed > 300 { // IF acceleration over 1G and Airspeed over 300m/s
             SET MyThrottle TO MyThrottle - 0.001.
         }
-//     } ELSE IF SHIP:ALTITUDE < MaxQ + Margin {
-//         IF SHIP:altitude < MaxQ {
-//             SET MyStatus TO "Before MaxQ".
-//             IF SHIP:AIRSPEED > 300 AND ETA:apoapsis > 60 {
-//                 SET MyThrottle TO MAX(MyThrottle - 0.015, 0.25).
-//                 setPrograde().
-//             }
-//             IF SHIP:AIRSPEED < 300 OR ETA:apoapsis < 58 {
-//                 SET MyThrottle TO MyThrottle + 0.015.
-//                 setPrograde().
-//             }
-// //        IF getPitch > 20 {
-// //            setFacing().
-// //        }
-//         } ELSE IF SHIP:altitude < MaxQ + Margin {
-//     // Approaching maxQ
-//     //
-//     // Reduce Throttle to TWR 1.01
-//             SET MyThrottle TO MIN(MyThrottle,0.3).
-//             setFacing().
-//             SET MyStatus TO "In MaxQ ("+SASMODE+")".
-//         }
+        // Avoid going too flat while still inside atmosphere
+        IF getPitch() > 75 {
+            setFacing().
+        } ELSE {
+           setPrograde().
+        }
     } ELSE IF SHIP:ALTITUDE < BODY:ATM:HEIGHT {
     // After maxQ
         SET MyStatus TO "After MaxQ ("+SASMODE+")".
@@ -252,42 +236,11 @@ UNTIL SHIP:apoapsis > (TARGET_APOAPSIS * 0.9) OR SHIP:altitude > BODY:ATM:HEIGHT
             SET MyThrottle TO MyThrottle - 0.001.
         }
 
-        IF ETA:apoapsis < 30 {
+        IF ETA:apoapsis < 60 {
             setFacing().
         } ELSE {
             setPrograde().
         }
-
-        // IF ETA:APOAPSIS < 45 {
-        //     setFacing().
-        //     SET MyThrottle TO MyThrottle + 0.015.
-        // }
-        // IF ETA:apoapsis < 60 {
-        //     SET MyThrottle TO MyThrottle + 0.005.
-        // }
-        // IF ETA:APOAPSIS > 240 {
-        //     setPrograde().
-        //     SET PITCHLOCK TO False.
-        //     SET MyThrottle TO MAX(MyThrottle - 0.001, 0.015).
-        // }
-        // IF ETA:apoapsis > 270 {
-        //     SET MyThrottle TO MAX(MyThrottle - 0.01, 0.015).
-        // }
-        // IF SHIP:altitude < BODY:ATM:height / 3 AND getPitch() > 30 {
-        //     SET PITCHLOCK TO True.
-        //     setFacing().
-        // } ELSE IF SHIP:altitude < BODY:ATM:height / 2 AND getPitch() > 45 {
-        //     SET PITCHLOCK TO True.
-        //     setFacing().
-        // } ELSE IF SHIP:altitude < BODY:ATM:height / 1.5 AND getPitch() > 60 {
-        //     SET PITCHLOCK TO True.
-        //     setFacing().
-        // } ELSE IF SHIP:altitude < BODY:ATM:height AND getPitch() > 80 {
-        //     SET PITCHLOCK TO True.
-        //     setFacing().
-        // }
-
-
 
     // Adjust throttle to maintain Apoapsis between 35 and 31 seconds ahead until athmosphere is breached
     } ELSE {
@@ -337,11 +290,14 @@ UNTIL SHIP:periapsis > SAFE_PERIAPSIS {
     setSteering().
     IF SHIP:periapsis < SAFE_PERIAPSIS {
         testStage().
-        IF ETA:apoapsis < 60 - min((getTWR() * 3), 40) { SET MyThrottle TO MyThrottle + 0.1. }
-        IF ETA:apoapsis > 60 - min((getTWR() / 2), 20) { SET MyThrottle TO MyThrottle - 0.01. }
-        IF ETA:apoapsis > 70 { SET MyThrottle TO MyThrottle - 0.04. }
-        IF ETA:apoapsis > 100 + (20 - (getTWR() * 5)) { SET MyThrottle TO 0. }
+        IF ETA:apoapsis < 60  - min((getTWR() * 3), 40) { SET MyThrottle TO MyThrottle + 0.1. }
+        IF ETA:apoapsis > 60  - min((getTWR() / 2), 20) { SET MyThrottle TO MyThrottle - 0.01. }
+        IF ETA:apoapsis > 70  + max((20 - (getTWR())), -5) { SET MyThrottle TO MyThrottle - 0.04. }
+        IF ETA:apoapsis > 100 + max((20 - (getTWR() * 5)), -20) { SET MyThrottle TO 0. }
         IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
+            setFacing().
+            SET MyThrottle TO 1.
+        } ELSE IF ETA:apoapsis < 5 {
             setFacing().
             SET MyThrottle TO 1.
         } ELSE {

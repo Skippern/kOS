@@ -1,6 +1,6 @@
 RUN ONCE "0:lib/utils/std".
 
-GLOBAL TimeToTransmit TO 0.
+// GLOBAL TimeToTransmit TO 0.
 
 DECLARE FUNCTION telemetryScience {
     PARAMETER FirstLine TO 0.

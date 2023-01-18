@@ -305,10 +305,10 @@ UNTIL OrbitAchieved {
         //
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         SET CurrentTask TO "Adjusting Inclination (over AN)".
-        IF INCLINATION < SHIP:ORBIT:INCLINATION {
+        IF INCLINATION > SHIP:ORBIT:INCLINATION {
             // Lower
             setNormal().
-        } ELSE IF INCLINATION > SHIP:ORBIT:INCLINATION {
+        } ELSE IF INCLINATION < SHIP:ORBIT:INCLINATION {
             // Increase
             setAntiNormal().
         }

@@ -37,11 +37,9 @@ DECLARE FUNCTION telemetryOrbit {
     SET mach TO "".
     IF hasTermometer AND hasBarometer {
         IF SHIP:SENSORS:TEMP > 0 AND SHIP:SENSORS:PRES > 0 {
-            // SET universalGasConstant TO 8.314. //  J/mol K
-            // SET adiabaticConstant TO 1.4. // Constant
             SET airMolMass TO SHIP:SENSORS:PRES / ( universalGasConstant * SHIP:SENSORS:TEMP ). // kg/mol
             SET soundSpeed TO SQRT( ( adiabaticConstant * universalGasConstant ) / airMolMass ) * SQRT(SHIP:SENSORS:TEMP).
-            SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed,2) +"M".
+            SET mach TO "/ "+ ROUND(SHIP:airspeed / soundSpeed, 2) +"M".
         }
     }
     IF HASTARGET {

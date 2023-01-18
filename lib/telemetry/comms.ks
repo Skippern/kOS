@@ -5,5 +5,10 @@ DECLARE FUNCTION telemetryComms {
     PARAMETER FirstLine TO 0.
     SET LINENUM TO FirstLine.
 
-    PRINT "NOT ACTIVE!" AT(0,LINENUM).
+    if (hasConnection) {
+        PRINT "CONNECTED      " AT(0,LINENUM).
+    } else {
+        PRINT "NOT CONNECTED! " AT(0,LINENUM).
+        walkConnection.
+    }
 }

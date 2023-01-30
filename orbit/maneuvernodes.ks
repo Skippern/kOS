@@ -5,22 +5,25 @@
 // Nodes must be placed out from map view.
 CLEARSCREEN.
 SAS OFF.
-SET MYSTEER TO HEADING(0,0).
-LOCK STEERING TO MYSTEER.
+// SET MYSTEER TO HEADING(0,0).
+// LOCK STEERING TO MYSTEER.
 SET BurnPhase TO False.
 
 UNTIL False {
     // Main loop
     IF BurnPhase {
         SET dBurn TO NEXTNODE:DELTAV:MAG / 36.
-        SET MYSTEER TO NEXTNODE:DELTAV.
+        // SET MYSTEER TO NEXTNODE:DELTAV.
+        setManeuver().
+        setSteering().
         LOCK THROTTLE TO MIN(1.0, dBurn).
         PRINT " DO BURN!                                                " AT(0,0).
         PRINT "Delta Burn = "+ROUND(dBurn,1)+" and Throttle Command="+ROUND(THROTTLE*100,1)+"%          " AT(0,2).
         IF dBurn < 0.025 { 
             SET BurnPhase TO False. 
-            UNLOCK STEERING.
             LOCK THROTTLE TO 0.
+            WAIT 1.
+            UNLOCK STEERING.
             UNLOCK THROTTLE.
             REMOVE NEXTNODE. // Might not work.
         }
@@ -43,11 +46,11 @@ UNTIL False {
         }
         // We have a node approaching, lets react.
         IF NEXTNODE:ETA > 60 {
-            LOCK STEERING TO MYSTEER.
+            // LOCK STEERING TO MYSTEER.
             SET tmp TO NEXTNODE:ETA.
-            SET min TO FLOOR(tmp / 60).
-            SET sec TO ROUND(tmp - (min*60),0).
-            PRINT "NODE ETA IN " + min + "min " + sec + "s                 " AT(0,1).
+            SET minute TO FLOOR(tmp / 60).
+            SET sec TO ROUND(tmp - (minute*60),0).
+            PRINT "NODE ETA IN " + minute + "min " + sec + "s                 " AT(0,1).
             WAIT 1.
         } ELSE IF NEXTNODE:ETA < 0.3 AND NEXTNODE:ETA > 0 {
             SET tmp TO NEXTNODE:ETA.

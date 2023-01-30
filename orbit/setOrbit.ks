@@ -189,7 +189,7 @@ PRINT "Setting Orbit araund " + SHIP:ORBIT:BODY:NAME + " for: " + SHIP:NAME + " 
 
 SET OrbitAchieved TO False.
 SET NOBURN TO False.
-SAS ON.
+// SAS ON.
 
 UNTIL OrbitAchieved {
    IF (MyThrottle > 0) {
@@ -231,7 +231,7 @@ UNTIL OrbitAchieved {
     SET BURNTIME TO 60.
 //    SET BURNFORCE TO MAX(1 / getTWR(), 0.1).
     IF getTWR() > 0 {
-        SET BURNFORCE TO 100 / getTWR().
+        SET BURNFORCE TO 30 / getTWR().
     } ELSE {
         SET BURNFORCE TO 0.
     }
@@ -257,7 +257,7 @@ UNTIL OrbitAchieved {
         }
         IF ariesSector(ASCENDING_NODE + 90, 1) {
             // burn
-            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+            SET MyThrottle TO BURNFORCE * ABS(INCLINATION - SHIP:ORBIT:inclination).
         } ELSE {
             // No burn
             SET MyThrottle TO 0.
@@ -279,7 +279,7 @@ UNTIL OrbitAchieved {
         }
         IF ariesSector(ASCENDING_NODE + 270, 1) {
             // burn
-            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+            SET MyThrottle TO BURNFORCE * ABS(INCLINATION - SHIP:ORBIT:inclination).
         } ELSE {
             // No burn
             SET MyThrottle TO 0.
@@ -302,7 +302,6 @@ UNTIL OrbitAchieved {
     // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) { // At Apoapsis
     // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan, MAX(15, ((BURNTIME*2)/AngleSpeed))) { // At Ascending Node
     } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 90, 3) { // At Ascending Node + 90
-        //
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         SET CurrentTask TO "Adjusting Inclination (over AN)".
         IF INCLINATION > SHIP:ORBIT:INCLINATION {
@@ -312,17 +311,14 @@ UNTIL OrbitAchieved {
             // Increase
             setAntiNormal().
         }
-        // IF orbitSector(180, 1) { // Apoapsis
-//        IF ariesSector(SHIP:ORBIT:LAN, 1) { // Ascending Node
        IF ariesSector(SHIP:ORBIT:LAN + 90, 1) { // Ascending Node
             // burn
-            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+            SET MyThrottle TO BURNFORCE * ABS(INCLINATION - SHIP:ORBIT:inclination).
         } ELSE {
             // No burn
             SET MyThrottle TO 0.
         }
     } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 270, 3) { // At Ascending Node + 270
-        //
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         SET CurrentTask TO "Adjusting Inclination (under AN)".
         IF INCLINATION > SHIP:ORBIT:INCLINATION {
@@ -332,11 +328,9 @@ UNTIL OrbitAchieved {
             // Increase
             setAntiNormal().
         }
-        // IF orbitSector(180, 1) { // Apoapsis
-//        IF ariesSector(SHIP:ORBIT:LAN, 1) { // Ascending Node
        IF ariesSector(SHIP:ORBIT:LAN + 270, 1) { // Ascending Node
             // burn
-            SET MyThrottle TO (100 / getTWR() ) * ABS(INCLINATION - SHIP:ORBIT:inclination).
+            SET MyThrottle TO BURNFORCE * ABS(INCLINATION - SHIP:ORBIT:inclination).
         } ELSE {
             // No burn
             SET MyThrottle TO 0.
@@ -347,7 +341,7 @@ UNTIL OrbitAchieved {
         SET CurrentTask TO "Adjusting Periapsis".
         IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
             IF getTWR() > 0 {
-                SET MyThrottle TO (100 / (getTWR() ) * (ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis)/MY_PERIAPSIS)  ).
+                SET MyThrottle TO (BURNFORCE * (ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis)/MY_PERIAPSIS)  ).
             }
 //            SET MyThrottle TO BURNFORCE.
         } ELSE {

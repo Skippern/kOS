@@ -38,3 +38,6 @@ DECLARE FUNCTION telemetryShip {
     SET LINENUM TO LINENUM + 1.
     PRINT "KSC Time: " + TIME:calendar + " at " + TIME:clock + "         " AT(0,LINENUM).
 }
+
+
+// Find a way to implement NAVMODE into telemetry

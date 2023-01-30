@@ -1,7 +1,12 @@
 // orbit/gravityturn.ks
 DECLARE PARAMETER AZIMUTH IS 90,
                     TILTED IS 80,
-                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 1.4, 50000).
+                    TARGET_APOAPSIS IS MAX(BODY:ATM:HEIGHT * 1.4, 50000),
+                    FINAL_APOAPSIS IS False,
+                    FINAL_PERIAPSIS IS False,
+                    INCLINATION IS False,
+                    LAN IS False,
+                    ARG IS False.
 //
 // Launch with a controlled gravity turn into orbit
 //
@@ -294,7 +299,8 @@ UNTIL SHIP:periapsis > SAFE_PERIAPSIS {
         IF ETA:apoapsis > 60  - min((getTWR() / 2), 20) { SET MyThrottle TO MyThrottle - 0.01. }
         IF ETA:apoapsis > 70  + max((20 - (getTWR())), -5) { SET MyThrottle TO MyThrottle - 0.04. }
         IF ETA:apoapsis > 100 + max((20 - (getTWR() * 5)), -20) { SET MyThrottle TO 0. }
-        IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
+        // IF ETA:apoapsis > (SHIP:ORBIT:PERIOD / 2) {
+        IF ETA:apoapsis > ETA:periapsis {
             setFacing().
             SET MyThrottle TO 1.
         } ELSE IF ETA:apoapsis < 5 {
@@ -322,3 +328,23 @@ PRINT "".
 PRINT "Inclination: i " + ROUND(SHIP:ORBIT:inclination, 1) + "°".
 PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN, 1) + "°".
 PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis, 1) + "°".
+
+
+                    // FINAL_APOAPSIS IS False,
+                    // FINAL_PERIAPSIS IS False,
+                    // INCLINATION IS False,
+                    // LAN IS False,
+                    // ARG IS False.
+IF FINAL_APOAPSIS {
+    IF FINAL_APOAPSIS > (SHIP:apoapsis * 1.1) {
+        UNTIL ETA:APOAPSIS > ETA:PERIAPSIS {
+            WAIT 1.
+        }
+    }
+    UNTIL hasConnection() {
+        WAIT 1.
+    }
+    RUN "0:orbit/setOrbit" (FINAL_APOAPSIS, FINAL_PERIAPSIS, INCLINATION, LAN, ArG).
+}
+
+PRINT "Program ended!".

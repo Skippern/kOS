@@ -9,7 +9,7 @@ DECLARE FUNCTION autoRunScience {
         SET IntevalFrame TO 0.
         transmitScienceLab().
         // getScience().
-        // transmitScience().
+        transmitScience().
     }
 }
 

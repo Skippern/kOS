@@ -185,7 +185,9 @@ DECLARE FUNCTION activateAllLinks {
     FOR a IN myantennas {
         FOR P IN SHIP:partsnamed(a:NAME) {
             SET M TO P:GETMODULE("ModuleRTAntenna").
-            M:DOEVENT("activate").
+            IF M:hasevent("activate") {
+                M:DOEVENT("activate").
+            }
             WAIT 0.5.
         }
     }

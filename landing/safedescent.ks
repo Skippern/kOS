@@ -37,6 +37,7 @@ UNTIL SHIP:periapsis < BODY:ATM:height * 0.90 {
     // Break near Apoapsis
     setRetrograde().
     IF ETA:apoapsis < 30 OR (SHIP:ORBIT:PERIOD - ETA:apoapsis) < 60 {
+        IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         SET MyStatus TO "Preparing athmospheric DIP". 
         SET MyThrottle TO 0.05.
         IF SHIP:periapsis > 100000 { SET MyThrottle TO 1. }

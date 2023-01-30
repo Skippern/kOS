@@ -54,6 +54,8 @@ DECLARE FUNCTION telemetryOrbit {
     SET LINENUM TO LINENUM + 1.
     PRINT "Eccentricity: e " + ROUND(SHIP:ORBIT:eccentricity,5) + "       " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
+    PRINT "Semi-major axis: " + ROUND(ORBIT:semimajoraxis,1) + "m        " AT(0, LINENUM).
+    SET LINENUM TO LINENUM + 1.
     PRINT "Ascending Node: ☊ " + ROUND(SHIP:ORBIT:LAN,1) + "°            " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
     PRINT "Argument of PE: ω " + ROUND(SHIP:ORBIT:argumentofperiapsis,1) + "°            " AT(0,LINENUM).

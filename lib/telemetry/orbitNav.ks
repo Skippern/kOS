@@ -26,6 +26,14 @@ DECLARE FUNCTION telemetryOrbit {
     SET LINENUM TO LINENUM + 1.
     PRINT "Altitude: " + ROUND(SHIP:altitude,1) + "m / " + ROUND(SHIP:verticalSpeed,1) + "m/s (vert)          " AT(0,LINENUM).
     SET LINENUM TO LINENUM + 1.
+    IF (SHIP:geoposition:lat >= 0) {
+        SET NS TO "N".
+    } ELSE SET NS TO "S".
+    IF (SHIP:geoposition:lng >= 0) {
+        SET EW TO "W".
+    } ELSE SET EW TO "E".
+    PRINT "Position: " + ABS(ROUND(SHIP:geoposition:lat, 3)) + NS + " / " + ABS(ROUND(SHIP:geoposition:lng, 3)) + EW + "           " AT(0,LINENUM).
+    SET LINENUM TO LINENUM + 1.
     IF (BODY:ATM:HEIGHT > 5000 AND SHIP:ALTITUDE < BODY:ATM:HEIGHT) OR SHIP:ALTITUDE < (SAFE_ALTITUDES[SHIP:BODY:NAME] * 1.5) {
         PRINT "Height over ground: " + ROUND(SHIP:BOUNDS:BOTTOMALTRADAR,1) + "m                                    " AT(0,LINENUM).
     } ELSE {

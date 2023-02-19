@@ -10,13 +10,16 @@ DECLARE PARAMETER AZIMUTH IS 90,
 //
 // Launch with a controlled gravity turn into orbit
 //
-// RUN "0:orbit/gravityturn" (90, 80, 140000, False, 77000)
-// Where 90 is Azimuth from launchpad
-// 80 is tilt to start gravitytyrb (90 is streight up)
-// 140000 si desired Apoapsis in meters
-// False for not circulating, True for circulating (this value will override Periapsis)
-// 77000 is desired Periapsis in meters
-// If last option TOURIST is set to True, script will abort as soon as orbit is achieved.
+// RUN "0:orbit/gravityturn" (90, 80, 140000)
+// Where 90 is Azimuth from launchpad (90 is due east)
+// 80 is tilt to start gravityturn (90 is streight up)
+// 140000 is desired Apoapsis in meters
+// Further options for entering a specific orbit
+// Final Orbit Apopapsis
+// Final Orbit Periapsis
+// Final Orbit Inclination
+// Final Orbit Latitude of Ascending Node (LAN)
+// Final Orbit Argument of Periapsis
 CLEARSCREEN.
 
 SET PITCHUP TO 90.

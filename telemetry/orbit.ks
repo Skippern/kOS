@@ -17,9 +17,9 @@ UNTIL false {
         telemetryAttitude(6).
         telemetrySensors(16).
         telemetryOrbit(22).
-        telemetryResources(39).
+        telemetryResources(40).
         // telemetryComms(50).
-        telemetryManifest(49).
+        telemetryManifest(50).
     }
     WAIT 0.05.
 }

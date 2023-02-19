@@ -9,6 +9,13 @@ CLEARSCREEN.
 
 RUN ONCE "0:/lib/utils/std".
 
+DECLARE FUNCTION checkStaging {
+    // check fuel level on stage and prepare for stages
+    IF getTWR() < 0.001 {
+        STAGE.
+    }
+}
+
 WAIT 1.
 SET MyStatus TO "Preparing Safe Descent".
 SET MyThrottle TO 0.
@@ -36,6 +43,7 @@ PRINT "Aligned in RETROGRADE".
 UNTIL SHIP:periapsis < BODY:ATM:height * 0.90 {
     // Break near Apoapsis
     setRetrograde().
+    checkStaging().
     IF ETA:apoapsis < 30 OR (SHIP:ORBIT:PERIOD - ETA:apoapsis) < 60 {
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         SET MyStatus TO "Preparing athmospheric DIP". 
@@ -58,6 +66,7 @@ PRINT "Periapsis inside atmosphere".
 // Get Apopasis down
 UNTIL SHIP:periapsis < (BODY:ATM:height * 0.70) OR SHIP:apoapsis < BODY:ATM:height {
     SET MyStatus TO "Flattening Orbit".
+    checkStaging().
     setRetrograde().
     setSteering().
     IF SHIP:altitude < BODY:ATM:height {

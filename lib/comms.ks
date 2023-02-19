@@ -80,25 +80,25 @@ SET AntennaEnergyConsumePerMit TO lexicon(
 // Range in m
 SET AntennaRange TO lexicon(
     // STOCK
-    "longAntenna",          2500000, // Communotron 16
-    "SurfAntenna",          1500000, // Communotron 16-S
-    "mediumDishAntenna",   50000000, // Communotron DTS-M1
-    "HighGainAntenna",  25000000000, // Communotron HG-55
-    "commDish",         40000000000, // Communotron 88-88
-    "HighGainAntenna5.v2", 20000000, // HG-5 High Gain Antenna
-    "RelayAntenna5",      200000000, // RA-2 Relay Antenna
-    "RelayAntenna50",   20000000000, // RA-15 Relay Antenna
-    "RelayAntenna100", 250000000000, // RA-100 Relay Antenna
+    "longAntenna",          2500000, // Communotron 16 (omni)
+    "SurfAntenna",          1500000, // Communotron 16-S (omni)
+    "mediumDishAntenna",   50000000, // Communotron DTS-M1 (dish)
+    "HighGainAntenna",  25000000000, // Communotron HG-55 (dish)
+    "commDish",         40000000000, // Communotron 88-88 (dish)
+    "HighGainAntenna5.v2", 20000000, // HG-5 High Gain Antenna (dish?)
+    "RelayAntenna5",      200000000, // RA-2 Relay Antenna (dish)
+    "RelayAntenna50",   20000000000, // RA-15 Relay Antenna (dish)
+    "RelayAntenna100", 250000000000, // RA-100 Relay Antenna (dish)
     // RemoteTech
-    "RTShortAntenna1",       500000, // Reflectron DP-10
-    "RTLongAntenna2",       5000000, //Communotron 32
-    "RTShortDish2",        90000000, // Reflectron KR-7
+    "RTShortAntenna1",       500000, // Reflectron DP-10 (omni)
+    "RTLongAntenna2",       5000000, //Communotron 32 (omni)
+    "RTShortDish2",        90000000, // Reflectron KR-7 (dish)
     "RTShortDish1",           False, // Reflectron SS-5 // Replased with KR-7
-    "RTLongDish2",      60000000000, // Reflectron KR-14
+    "RTLongDish2",      60000000000, // Reflectron KR-14 (dish)
     "RTLongDish1",            False, // Reflectron LL-5 // Replaced with KR-14
-    "RTLongAntenna3",       3000000, // CommTech EXP-VR-2T
-    "RTGigaDish2",     350000000000, // CommTech-1
-    "RTGigaDish1",     400000000000, // Reflectron GX-128
+    "RTLongAntenna3",       3000000, // CommTech EXP-VR-2T (omni)
+    "RTGigaDish2",     350000000000, // CommTech-1 (dish)
+    "RTGigaDish1",     400000000000, // Reflectron GX-128 (dish)
     // Antennas mod
     "helixAntenna",        70000000, // H1X Helical
     "yagiActual",       40000000000, // YA6 Yagi

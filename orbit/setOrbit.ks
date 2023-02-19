@@ -156,9 +156,9 @@ SET CurrentTask TO "IDLE".
         PRINT "Anomaly Speed: " + ROUND(SHIP:ORBIT:PERIOD / 360, 2) + "s/°      " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
-        PRINT "BURNFORCE:  "+BURNFORCE+"                       " AT(0,LINENUM).
+        PRINT "BURNFORCE:  "+ROUND(BURNFORCE,2)+"                       " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
-        PRINT "MyThrottle:  "+MyThrottle+"                      " AT(0,LINENUM).
+        PRINT "MyThrottle:  "+ROUND(MyThrottle,2)+"                      " AT(0,LINENUM).
         SET LINENUM TO LINENUM + 1.
         SET LINENUM TO LINENUM + 1.
         IF SHIP:BODY:NAME = "Kerbin" {
@@ -166,11 +166,11 @@ SET CurrentTask TO "IDLE".
             IF SHIP:ORBIT:PERIOD < (KerbinSideralDay * 0.99) {
                 PRINT "TOO LOW ORBIT FOR KEOSTATIONARY, INCREASE ORBIT                                           " AT(0,LINENUM).
             } ELSE IF SHIP:ORBIT:PERIOD < KerbinSideralDay {
-                PRINT "SEMI KEOSTATIONARY ORBIT, RISE WITH "+ABS(SHIP:ORBIT:PERIOD - KerbinSideralDay)+"s                                                     " AT(0,LINENUM).
+                PRINT "SEMI KEOSTATIONARY ORBIT, RISE WITH "+ROUND(ABS(SHIP:ORBIT:PERIOD - KerbinSideralDay),2)+"s                                                     " AT(0,LINENUM).
             } ELSE IF SHIP:ORBIT:PERIOD > (KerbinSideralDay * 1.01) {
                 PRINT "TOO HIGH ORBIT FOR KEOSTATIONARY, DECREASE ORBIT                                          " AT(0,LINENUM).
             } ELSE IF SHIP:ORBIT:PERIOD > KerbinSideralDay {
-                PRINT "SEMI KEOSTATIONARY ORBIT, LOWER WITH "+ABS(SHIP:ORBIT:PERIOD - KerbinSideralDay)+"s                                                     " AT(0,LINENUM).
+                PRINT "SEMI KEOSTATIONARY ORBIT, LOWER WITH "+ROUND(ABS(SHIP:ORBIT:PERIOD - KerbinSideralDay),2)+"s                                                     " AT(0,LINENUM).
             } ELSE IF SHIP:ORBIT:PERIOD = KerbinSideralDay {
                 PRINT "IN TRUE KEOSTATIONARY ORBIT, ONLY VARIATION IS DUE TO INCLINATION AND AP/PE DIFF          " AT(0,LINENUM).
             } ELSE {
@@ -243,7 +243,7 @@ UNTIL OrbitAchieved {
     IF ASCENDING_NODE AND ABS(ASCENDING_NODE - SHIP:ORBIT:LAN) > 0.1 AND ABS(SHIP:ORBIT:inclination) < 1 AND ariesSector(ASCENDING_NODE + 90, 15) { 
         // Semicircular orbit with low inclination
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
-        SET CurrentTask TO "Adjusting AN (i=0, after AN)".
+        SET CurrentTask TO "Adjusting AN (i=0, after AN)                      ".
         IF INCLINATION {
             IF INCLINATION > 0 {
                 setNormal().
@@ -265,7 +265,7 @@ UNTIL OrbitAchieved {
     } ELSE IF ASCENDING_NODE AND ABS(ASCENDING_NODE - SHIP:ORBIT:LAN) > 0.1 AND ABS(SHIP:ORBIT:inclination) < 1 AND ariesSector(ASCENDING_NODE + 270, 15) { 
         // Semicircular orbit with low inclination
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
-        SET CurrentTask TO "Adjusting AN (i=0, before AN)".
+        SET CurrentTask TO "Adjusting AN (i=0, before AN)                 ".
         IF INCLINATION {
             IF INCLINATION > 0 {
                 setNormal().
@@ -275,7 +275,8 @@ UNTIL OrbitAchieved {
         } ELSE IF SHIP:ORBIT:INCLINATION > 0 { 
             setNormal().
         } ELSE {
-            setAntiNormal().
+            // setAntiNormal().
+            setNormal().
         }
         IF ariesSector(ASCENDING_NODE + 270, 1) {
             // burn
@@ -301,15 +302,20 @@ UNTIL OrbitAchieved {
     // User BODY:ROTATIONANGLE to find position of Ascending Node
     // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND orbitSector(180, MAX(15, ((BURNTIME*2)/AngleSpeed))) { // At Apoapsis
     // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan, MAX(15, ((BURNTIME*2)/AngleSpeed))) { // At Ascending Node
+    // USE SHIP:GEOPOSITION:lat and SHIP:GEOPOSITION:lng burn 
+    // normal/anti-normal when crossing equator be careful with 
+    // strong burns when close to target inclination
     } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 90, 3) { // At Ascending Node + 90
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
-        SET CurrentTask TO "Adjusting Inclination (over AN)".
+        SET CurrentTask TO "Adjusting Inclination (over AN) ".
         IF INCLINATION > SHIP:ORBIT:INCLINATION {
-            // Lower
-            setNormal().
-        } ELSE IF INCLINATION < SHIP:ORBIT:INCLINATION {
             // Increase
+            SET CurrentTask TO CurrentTask + "Inc".
             setAntiNormal().
+        } ELSE IF INCLINATION < SHIP:ORBIT:INCLINATION {
+            // Lower
+            SET CurrentTask TO CurrentTask + "Low".
+            setNormal().
         }
        IF ariesSector(SHIP:ORBIT:LAN + 90, 1) { // Ascending Node
             // burn
@@ -320,13 +326,16 @@ UNTIL OrbitAchieved {
         }
     } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 270, 3) { // At Ascending Node + 270
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
-        SET CurrentTask TO "Adjusting Inclination (under AN)".
+        SET CurrentTask TO "Adjusting Inclination (under AN) ".
         IF INCLINATION > SHIP:ORBIT:INCLINATION {
             // Lower
-            setNormal().
+            SET CurrentTask TO CurrentTask + "Low".
+            setAntiNormal().
         } ELSE IF INCLINATION < SHIP:ORBIT:INCLINATION {
             // Increase
-            setAntiNormal().
+            SET CurrentTask TO CurrentTask + "Inc".
+            setNormal().
+            // setNormal().
         }
        IF ariesSector(SHIP:ORBIT:LAN + 270, 1) { // Ascending Node
             // burn
@@ -338,7 +347,7 @@ UNTIL OrbitAchieved {
     // Last thing to do is to adjust orbit height, this is the last to be done since it will not alter
     } ELSE IF orbitSector(180, MAX(5, ((BURNTIME*2)/AngleSpeed))) {
     // Apoapsis Sector
-        SET CurrentTask TO "Adjusting Periapsis".
+        SET CurrentTask TO "Adjusting Periapsis             ".
         IF ETA:apoapsis < BURNTIME OR (LAPTIME - ETA:apoapsis) < BURNTIME {
             IF getTWR() > 0 {
                 SET MyThrottle TO (BURNFORCE * (ABS(MY_PERIAPSIS - SHIP:ORBIT:periapsis)/MY_PERIAPSIS)  ).
@@ -360,7 +369,7 @@ UNTIL OrbitAchieved {
         }
     } ELSE IF orbitSector(0, MAX(5, ((BURNTIME*2)/AngleSpeed))) {
     // Periapsis Sector
-        SET CurrentTask TO "Adjusting Apoapsis".
+        SET CurrentTask TO "Adjusting Apoapsis                  ".
         IF ETA:periapsis < BURNTIME OR (LAPTIME - ETA:periapsis) < BURNTIME  {
             IF (SHIP:periapsis < (BODY:ATM:HEIGHT * 1.01)) AND SASMODE = "RETROGRADE" {
                 IF getTWR() > 0 AND ETA:periapsis > (BURNTIME * 2) {
@@ -368,11 +377,11 @@ UNTIL OrbitAchieved {
                 }
             } ELSE IF SASMODE = "RETROGRADE" {
                 IF getTWR() > 0 {
-                    SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
+                    SET MyThrottle TO MAX(0.1, BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
             } ELSE IF SASMODE = "PROGRADE" {
                 IF getTWR() > 0 {
-                    SET MyThrottle TO (BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
+                    SET MyThrottle TO MAX(0.1, BURNFORCE *  (ABS(MY_APOAPSIS - SHIP:ORBIT:apoapsis)/MY_APOAPSIS) ).
                 }
             } ELSE {
                 SET MyThrottle TO 0.
@@ -393,7 +402,7 @@ UNTIL OrbitAchieved {
             SET MyThrottle TO 0.
         }
     } ELSE {
-        SET CurrentTask TO "IDLE".
+        SET CurrentTask TO "IDLE                             ".
         setStability().
     }
     // End

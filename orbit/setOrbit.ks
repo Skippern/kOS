@@ -296,6 +296,9 @@ UNTIL OrbitAchieved {
     // Ecentricity of 1 is an escape orbit
     // For eliptical orbits, burn radial at AN/DN
     //
+    // } ELSE IF ARGUMENT_PE AND ABS(ARGUMENT_PE - SHIP:ORBIT:argumentofperiapsis) > 0.1  {
+
+
     // Inclination: the angle at Ascending node between orbit and reference plane.
     //
     // Set inclination by burning Normal/Antinormal at Ascending Node
@@ -305,7 +308,8 @@ UNTIL OrbitAchieved {
     // USE SHIP:GEOPOSITION:lat and SHIP:GEOPOSITION:lng burn 
     // normal/anti-normal when crossing equator be careful with 
     // strong burns when close to target inclination
-    } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 90, 3) { // At Ascending Node + 90
+    // } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ariesSector(SHIP:ORBIT:lan + 90, 3) { // At Ascending Node + 90
+    } ELSE IF INCLINATION AND ABS(INCLINATION - SHIP:ORBIT:inclination) > 0.1 AND ABS(SHIP:geoposition:lat) < 1 {
         IF KUNIVERSE:timewarp:rate > 1 { KUNIVERSE:timewarp:cancelwarp(). }
         SET CurrentTask TO "Adjusting Inclination (over AN) ".
         IF INCLINATION > SHIP:ORBIT:INCLINATION {

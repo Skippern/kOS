@@ -29,7 +29,7 @@ DECLARE FUNCTION telemetryOrbit {
     IF (SHIP:geoposition:lat >= 0) {
         SET NS TO "N".
     } ELSE SET NS TO "S".
-    IF (SHIP:geoposition:lng >= 0) {
+    IF (SHIP:geoposition:lng <= 0) {
         SET EW TO "W".
     } ELSE SET EW TO "E".
     PRINT "Position: " + ABS(ROUND(SHIP:geoposition:lat, 3)) + NS + " / " + ABS(ROUND(SHIP:geoposition:lng, 3)) + EW + "           " AT(0,LINENUM).

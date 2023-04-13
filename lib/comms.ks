@@ -118,43 +118,43 @@ DECLARE FUNCTION getTransmitTime {
 }
 // Slowest Mit/s / s
 DECLARE FUNCTION getAntennaRange { 
-    LOCAL R IS False.
-    LOCAL i IS 0.
+    LOCAL Ra IS False.
+    LOCAL iRa IS 0.
     FOR a IN myantennas {
         IF AntennaRange:HASKEY(a:NAME) {
-            SET i TO AntennaRange[a:NAME].
-            IF i > R { SET R TO i. }
+            SET iRa TO AntennaRange[a:NAME].
+            IF iRa > Ra { SET Ra TO iRa. }
         }
     }
-    IF R { RETURN R. }
+    IF Ra { RETURN Ra. }
     RETURN AntennaRange["default"].
 }
 // Slowest Mit/s / s
 DECLARE FUNCTION getTransmitSpeed { 
-    LOCAL R IS False.
-    LOCAL i IS 0.
+    LOCAL S IS False.
+    LOCAL iSp IS 0.
     FOR a IN myantennas {
         IF AntennaTransmissionSpeed:HASKEY(a:NAME) {
-            SET i TO AntennaTransmissionSpeed[a:NAME].
-            IF i > R { SET R TO i. }
+            SET iSp TO AntennaTransmissionSpeed[a:NAME].
+            IF iSp > S { SET S TO iSp. }
         }
     }
     // IF R AND hasRT { RETURN 6.67. } // RT Default speed
-    IF R { RETURN R. }
+    IF S { RETURN S. }
     RETURN AntennaTransmissionSpeed["default"].
 }
 // Highest charge / Mit
 DECLARE FUNCTION getTransmitEnergy {
-    LOCAL R IS False.
-    LOCAL i IS 0.
+    LOCAL Eng IS False.
+    LOCAL iEng IS 0.
     FOR a in myantennas {
         IF AntennaEnergyConsumePerMit:HASKEY(a:NAME) {
-            SET i TO AntennaEnergyConsumePerMit[a:NAME].
-            IF R > i { SET R TO i. }
+            SET iEng TO AntennaEnergyConsumePerMit[a:NAME].
+            IF Eng > iEng { SET Eng TO iEng. }
         }
     }
     // IF R AND myRT { RETURN 7.5. } // RT Default Energy consume
-    IF R { RETURN R. }
+    IF Eng { RETURN Eng. }
     RETURN AntennaEnergyConsumePerMit["default"].
 }
 // Seconds delay to KSC

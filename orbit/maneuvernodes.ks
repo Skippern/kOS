@@ -9,6 +9,8 @@ SAS OFF.
 // LOCK STEERING TO MYSTEER.
 SET BurnPhase TO False.
 
+RUN ONCE "0:lib/utils/std".
+
 UNTIL False {
     // Main loop
     IF BurnPhase {
